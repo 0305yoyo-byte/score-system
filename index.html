@@ -383,6 +383,17 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
 
+    .log-table-row {
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .log-table-row:hover td,
+    .log-table-row.active td {
+      background: #f8fafc;
+    }
+
+
     .log-player-card .name {
       font-weight: 900;
       font-size: 17px;
@@ -550,7 +561,7 @@
       <div class="card">
         <h2>關主登入</h2>
         <label for="judgeNameInput">請輸入關主名字</label>
-        <input id="judgeNameInput" type="text" placeholder="例如：第一關關主、王小明" />
+        <input id="judgeNameInput" type="text" />
         <div class="actions">
           <button onclick="loginJudge()">進入關主模式</button>
           <button class="secondary" onclick="goHome()">取消</button>
@@ -584,13 +595,12 @@
           <div class="top-actions" style="justify-content: space-between; margin-bottom: 10px;">
             <div>
               <h2>查詢隊員加減分紀錄</h2>
-              <p class="muted">請先點擊一位隊員，再查看該隊員的加減分紀錄。</p>
             </div>
             <button class="danger" onclick="clearLogs()">清除所有紀錄</button>
           </div>
 
           <label for="logPlayerSearchInput">搜尋隊員</label>
-          <input id="logPlayerSearchInput" type="text" placeholder="輸入編號、名字或組別" oninput="renderLogPlayerList()" />
+          <input id="logPlayerSearchInput" type="text" oninput="renderLogPlayerList()" />
 
           <div id="logPlayerList"></div>
         </div>
@@ -615,17 +625,17 @@
           <div class="grid-3">
             <div>
               <label for="memberNumber">編號</label>
-              <input id="memberNumber" type="number" min="1" placeholder="流水號，例如 1" />
+              <input id="memberNumber" type="number" min="1" />
             </div>
 
             <div>
               <label for="memberName">名字</label>
-              <input id="memberName" type="text" placeholder="隊員名字" />
+              <input id="memberName" type="text" />
             </div>
 
             <div>
               <label for="memberGroup">組別</label>
-              <input id="memberGroup" type="text" placeholder="例如：1、2、A組" />
+              <input id="memberGroup" type="text" />
             </div>
           </div>
 
@@ -639,13 +649,15 @@
         </div>
 
         <div class="card">
-          <h2>隊員列表與分數調整</h2>
-          <p class="muted">可編輯隊員資料、刪除隊員、直接調整分數或將分數歸零。</p>
+          <div class="top-actions" style="justify-content: space-between; margin-bottom: 10px;">
+            <h2>隊員列表與分數調整</h2>
+            <button class="warning" onclick="resetAllScoresByAdmin()">所有隊員分數歸零</button>
+          </div>
 
           <div class="grid">
             <div>
               <label for="adminSearchInput">搜尋隊員</label>
-              <input id="adminSearchInput" type="text" placeholder="輸入編號、名字或組別" oninput="renderMembers()" />
+              <input id="adminSearchInput" type="text" oninput="renderMembers()" />
             </div>
 
             <div>
@@ -668,7 +680,6 @@
           <div class="top-actions" style="justify-content: space-between; margin-bottom: 10px;">
             <div>
               <h2>關卡管理</h2>
-              <p class="muted">請先選擇主題，進去後可以新增、刪除與編輯關卡。</p>
             </div>
           </div>
 
@@ -676,7 +687,7 @@
           <div class="grid">
             <div>
               <label for="themeNameInput">主題名稱</label>
-              <input id="themeNameInput" type="text" placeholder="例如：體能挑戰、益智闖關" />
+              <input id="themeNameInput" type="text" />
             </div>
           </div>
           <div class="actions">
@@ -700,7 +711,7 @@
           <div class="grid">
             <div>
               <label for="stageNameInput">關卡名稱</label>
-              <input id="stageNameInput" type="text" placeholder="例如：投球挑戰、解謎任務" />
+              <input id="stageNameInput" type="text" />
             </div>
           </div>
           <div class="actions">
@@ -722,7 +733,11 @@
             <div class="card mode-card settings-choice" onclick="showSettingsPasswordMenu()">
               <div class="icon">🔐</div>
               <h2>密碼</h2>
-              <p class="muted">管理員 PIN 碼相關設定</p>
+            </div>
+
+            <div class="card mode-card settings-choice" onclick="showSettingsResetMenu()">
+              <div class="icon">🧹</div>
+              <h2>重置</h2>
             </div>
           </div>
         </div>
@@ -737,7 +752,6 @@
             <div class="card mode-card settings-choice" onclick="showChangePinForm()">
               <div class="icon">✏️</div>
               <h2>修改密碼</h2>
-              <p class="muted">變更管理員 4 碼 PIN</p>
             </div>
           </div>
         </div>
@@ -750,13 +764,13 @@
           <h2>修改 PIN 碼</h2>
 
           <label for="currentPinInput">目前 PIN 碼</label>
-          <input id="currentPinInput" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="請輸入目前的 4 碼 PIN" />
+          <input id="currentPinInput" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" />
 
           <label for="newPinInput">新的 PIN 碼</label>
-          <input id="newPinInput" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="請輸入 4 位數字" />
+          <input id="newPinInput" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" />
 
           <label for="confirmNewPinInput">再次輸入新的 PIN 碼</label>
-          <input id="confirmNewPinInput" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="再輸入一次 4 碼 PIN" />
+          <input id="confirmNewPinInput" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" />
 
           <div class="actions">
             <button onclick="changeAdminPin()">修改 PIN 碼</button>
@@ -764,6 +778,18 @@
           </div>
 
           <div id="pinChangeMsg"></div>
+        </div>
+
+        <div id="settingsResetMenu" class="hidden">
+          <div class="actions settings-back">
+            <button class="secondary" onclick="showSettingsMainMenu()">返回系統設定</button>
+          </div>
+
+          <h2>重置</h2>
+          <div class="actions">
+            <button class="danger" onclick="resetSystemDataKeepThemes()">重置資料</button>
+          </div>
+          <div id="resetDataMsg"></div>
         </div>
       </div>
     </section>
@@ -773,7 +799,6 @@
         <h2>關主加減分</h2>
         <p class="muted">目前關主：<strong id="judgeNameDisplay"></strong></p>
         <h3>選擇主題</h3>
-        <p class="muted">請先點選這次要進行加減分的主題。</p>
         <div id="judgeThemeCards"></div>
       </div>
 
@@ -781,7 +806,6 @@
         <div class="top-actions" style="justify-content: space-between; margin-bottom: 10px;">
           <div>
             <h2 id="judgeSelectedThemeTitle">選擇關卡</h2>
-            <p class="muted">請選擇第幾關，選完後再進行隊員加減分。</p>
           </div>
           <button class="secondary" onclick="backToJudgeThemeSelection()">回上一頁</button>
         </div>
@@ -798,7 +822,7 @@
         </div>
 
         <label for="judgeSearchInput">輸入隊員名字或編號</label>
-        <input id="judgeSearchInput" type="text" placeholder="例如：1 或 王小明" />
+        <input id="judgeSearchInput" type="text" />
 
         <div class="actions">
           <button onclick="judgeSearchMember()">查詢隊員</button>
@@ -827,12 +851,12 @@
           <div class="grid">
             <div>
               <label for="scoreChangeInput">加減分數</label>
-              <input id="scoreChangeInput" type="number" placeholder="加分輸入正數，扣分輸入負數，例如 10 或 -5" />
+              <input id="scoreChangeInput" type="number" />
             </div>
 
             <div>
               <label for="scoreReasonInput">備註</label>
-              <input id="scoreReasonInput" type="text" placeholder="例如：第一關完成、違規扣分，可空白" />
+              <input id="scoreReasonInput" type="text" />
             </div>
           </div>
 
@@ -848,7 +872,7 @@
         <div class="top-actions" style="justify-content: space-between; margin-bottom: 10px;">
           <div>
             <h2>我的加減分紀錄</h2>
-            <p class="muted">只顯示目前這位關主登入後，自己執行過的加減分動作。</p>
+            
           </div>
           <button class="secondary" onclick="renderJudgeOwnLogs()">重新整理紀錄</button>
         </div>
@@ -1606,12 +1630,10 @@
                     <div>
                       <label for="stageSetScore_${stage.id}">直接設定此關總分</label>
                       <input id="stageSetScore_${stage.id}" type="number" value="${givenScore}" />
-                      <div class="hint">輸入最後想要顯示的總分，例如 100。</div>
                     </div>
                     <div>
                       <label for="stageAdjustScore_${stage.id}">加減調整分數</label>
-                      <input id="stageAdjustScore_${stage.id}" type="number" placeholder="例如 10 或 -5" />
-                      <div class="hint">只調整此關總分，不會改變隊員個人分數。</div>
+                      <input id="stageAdjustScore_${stage.id}" type="number" />
                     </div>
                   </div>
                   <div class="actions">
@@ -1619,7 +1641,6 @@
                     <button class="warning" onclick="adjustStageScore('${stage.id}', ${index + 1})">加減調整</button>
                     <button class="secondary" onclick="resetStageScore('${stage.id}', ${index + 1})">此關歸零</button>
                   </div>
-                  <p class="muted">隊員加減分合計：${getStageLogScore(stage.id)} 分｜管理員手動調整：${getStageAdjustmentScore(stage.id)} 分</p>
                 </div>
               </div>
             `;
@@ -1809,10 +1830,13 @@
       document.getElementById("settingsMainMenu")?.classList.add("hidden");
       document.getElementById("settingsPasswordMenu")?.classList.add("hidden");
       document.getElementById("pinChangeFormBox")?.classList.add("hidden");
+      document.getElementById("settingsResetMenu")?.classList.add("hidden");
     }
 
     function showSettingsMainMenu() {
       resetPinForm();
+      const resetMsg = document.getElementById("resetDataMsg");
+      if (resetMsg) resetMsg.innerHTML = "";
       hideSettingsScreens();
       document.getElementById("settingsMainMenu")?.classList.remove("hidden");
     }
@@ -1828,6 +1852,44 @@
       hideSettingsScreens();
       document.getElementById("pinChangeFormBox")?.classList.remove("hidden");
       setTimeout(() => document.getElementById("currentPinInput")?.focus(), 50);
+    }
+
+    function showSettingsResetMenu() {
+      resetPinForm();
+      const resetMsg = document.getElementById("resetDataMsg");
+      if (resetMsg) resetMsg.innerHTML = "";
+      hideSettingsScreens();
+      document.getElementById("settingsResetMenu")?.classList.remove("hidden");
+    }
+
+    async function resetSystemDataKeepThemes() {
+      const msg = document.getElementById("resetDataMsg");
+
+      if (!confirm("確定要重置資料嗎？這會刪除所有隊員、加減分紀錄、關卡與關卡分數調整，只保留主題")) return;
+      if (!confirm("再次確認：重置後資料無法復原，確定要繼續嗎？")) return;
+
+      try {
+        await Promise.all([
+          remove(playersRef),
+          remove(logsRef),
+          remove(stagesRef),
+          remove(stageScoreAdjustmentsRef)
+        ]);
+
+        selectedMemberIdForJudge = null;
+        selectedLogPlayerId = null;
+        selectedJudgeThemeId = null;
+        selectedJudgeStageId = null;
+        selectedThemeId = null;
+        editingMemberId = null;
+        editingStageId = null;
+        resetMemberForm();
+        resetStageForm();
+
+        if (msg) msg.innerHTML = `<div class="success-note">資料已重置完成，已保留主題</div>`;
+      } catch (error) {
+        showError("重置資料", error);
+      }
     }
 
     async function changeAdminPin() {
@@ -2002,17 +2064,38 @@
       }
 
       box.innerHTML = `
-        <div class="log-player-list">
-          ${players.map(p => {
-            const count = data.logs.filter(log => log.playerId === p.id).length;
-            return `
-              <div class="log-player-card ${selectedLogPlayerId === p.id ? "active" : ""}" onclick="selectLogPlayer('${p.id}')">
-                <div class="name">${escapeHtml(p.name)}</div>
-                <div class="muted">編號：${escapeHtml(p.number)}｜組別：${escapeHtml(p.group)}</div>
-                <div class="muted">目前分數：${escapeHtml(p.score || 0)}｜紀錄數：${count}</div>
-              </div>
-            `;
-          }).join("")}
+        <div class="desktop-table table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>隊員</th>
+                <th>編號</th>
+                <th>組別</th>
+                <th>目前得分</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${players.map(p => `
+                <tr class="log-table-row ${selectedLogPlayerId === p.id ? "active" : ""}" onclick="selectLogPlayer('${p.id}')">
+                  <td><strong>${escapeHtml(p.name)}</strong></td>
+                  <td>${escapeHtml(p.number)}</td>
+                  <td>${escapeHtml(p.group)}</td>
+                  <td class="score">${escapeHtml(p.score || 0)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mobile-list">
+          ${players.map(p => `
+            <div class="person-card ${selectedLogPlayerId === p.id ? "active" : ""}" onclick="selectLogPlayer('${p.id}')">
+              <div class="name">${escapeHtml(p.name)}</div>
+              <div class="row"><span>編號</span><strong>${escapeHtml(p.number)}</strong></div>
+              <div class="row"><span>組別</span><strong>${escapeHtml(p.group)}</strong></div>
+              <div class="row"><span>目前得分</span><strong>${escapeHtml(p.score || 0)}</strong></div>
+            </div>
+          `).join("")}
         </div>
       `;
     }
@@ -2048,7 +2131,7 @@
         .sort((a, b) => String(b.time).localeCompare(String(a.time)));
 
       if (logs.length === 0) {
-        box.innerHTML = `<p class="muted">這位隊員目前沒有加減分紀錄。</p>`;
+        box.innerHTML = `<p class="muted">這位隊員目前沒有加減分紀錄</p>`;
         return;
       }
 
@@ -2113,7 +2196,7 @@
         .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
       if (logs.length === 0) {
-        box.innerHTML = `<p class="muted">目前還沒有你的加減分紀錄。</p>`;
+        box.innerHTML = `<p class="muted">目前還沒有你的加減分紀錄</p>`;
         return;
       }
 
@@ -2298,7 +2381,6 @@
                   <td>
                     <div class="actions" style="margin-top:0;">
                       <button onclick="updateScoreByAdmin('${p.id}')">更新分數</button>
-                      <button class="warning" onclick="resetScoreByAdmin('${p.id}')">歸零</button>
                       <button class="secondary" onclick="editMember('${p.id}')">編輯</button>
                       <button class="danger" onclick="deleteMember('${p.id}')">刪除</button>
                     </div>
@@ -2324,7 +2406,6 @@
 
               <div class="actions">
                 <button onclick="updateScoreByAdmin('${p.id}', true)">更新分數</button>
-                <button class="warning" onclick="resetScoreByAdmin('${p.id}')">歸零</button>
                 <button class="secondary" onclick="editMember('${p.id}')">編輯</button>
                 <button class="danger" onclick="deleteMember('${p.id}')">刪除</button>
               </div>
@@ -2381,6 +2462,30 @@
         });
       } catch (error) {
         showError("更新分數", error);
+      }
+    }
+
+    async function resetAllScoresByAdmin() {
+      if (data.players.length === 0) {
+        alert("目前沒有隊員資料。");
+        return;
+      }
+
+      const playersNeedReset = data.players.filter(p => Number(p.score || 0) !== 0);
+      if (playersNeedReset.length === 0) {
+        alert("所有隊員目前都是 0 分。");
+        return;
+      }
+
+      if (!confirm("確定要將所有隊員的分數全部歸 0 嗎？")) return;
+
+      try {
+        await Promise.all(playersNeedReset.map(p => update(ref(db, `${DB_ROOT}/players/${p.id}`), {
+          score: 0,
+          updatedAt: serverTimestamp()
+        })));
+      } catch (error) {
+        showError("全部分數歸零", error);
       }
     }
 
@@ -2597,6 +2702,8 @@
       showSettingsMainMenu,
       showSettingsPasswordMenu,
       showChangePinForm,
+      showSettingsResetMenu,
+      resetSystemDataKeepThemes,
       resetThemeForm,
       saveTheme,
       editTheme,
@@ -2625,7 +2732,7 @@
       editMember,
       deleteMember,
       updateScoreByAdmin,
-      resetScoreByAdmin,
+      resetAllScoresByAdmin,
       clearJudgeSearch,
       judgeSearchMember,
       applyJudgeScore,
