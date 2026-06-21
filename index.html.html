@@ -1,0 +1,1611 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>計分系統</title>
+
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #dc2626;
+      --danger-dark: #b91c1c;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --radius: 16px;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      padding: 14px 18px;
+    }
+
+    header .bar {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin: 0;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin: 0 0 12px;
+    }
+
+    h3 {
+      font-size: 17px;
+      margin: 0 0 10px;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .mode-card {
+      cursor: pointer;
+      text-align: center;
+      padding: 32px 18px;
+      transition: 0.18s;
+    }
+
+    .mode-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--primary);
+    }
+
+    .mode-card .icon {
+      font-size: 44px;
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin: 10px 0 6px;
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 13px;
+      background: white;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+      transition: 0.15s;
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button.secondary:hover {
+      background: #d1d5db;
+    }
+
+    button.danger {
+      background: var(--danger);
+    }
+
+    button.danger:hover {
+      background: var(--danger-dark);
+    }
+
+    button.success {
+      background: var(--success);
+    }
+
+    button.warning {
+      background: var(--warning);
+      color: #111827;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      padding: 11px 8px;
+      vertical-align: middle;
+    }
+
+    th {
+      color: #374151;
+      background: #f9fafb;
+      font-size: 14px;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .score {
+      font-weight: 900;
+      font-size: 18px;
+    }
+
+    .positive {
+      color: var(--success);
+      font-weight: 900;
+    }
+
+    .negative {
+      color: var(--danger);
+      font-weight: 900;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .tabs button {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .tabs button.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .result-box {
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 14px;
+      background: #f8fafc;
+      margin-top: 14px;
+    }
+
+    .big-score {
+      font-size: 42px;
+      font-weight: 1000;
+      line-height: 1;
+      margin: 10px 0;
+    }
+
+    .notice {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      margin-bottom: 14px;
+      font-weight: 700;
+    }
+
+    .success-note {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #ecfdf5;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      margin-top: 12px;
+      font-weight: 700;
+    }
+
+    .danger-note {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      margin-top: 12px;
+      font-weight: 700;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .mobile-list {
+      display: none;
+    }
+
+    .desktop-table {
+      display: block;
+    }
+
+    .log-player-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .log-player-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 13px;
+      background: #ffffff;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .log-player-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .log-player-card.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .log-player-card .name {
+      font-weight: 900;
+      font-size: 17px;
+      margin-bottom: 5px;
+    }
+
+    @media (max-width: 760px) {
+      header .bar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      main {
+        padding: 14px;
+      }
+
+      .grid,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      .desktop-table {
+        display: none;
+      }
+
+      .mobile-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .person-card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 13px;
+        background: #fff;
+      }
+
+      .person-card .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 6px 0;
+      }
+
+      .person-card .name {
+        font-size: 18px;
+        font-weight: 900;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .top-actions button,
+      .actions button {
+        flex: 1 1 140px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="bar">
+      <h1>計分系統</h1>
+      <div class="top-actions">
+        <span id="currentMode" class="pill hidden"></span>
+        <button class="secondary hidden" id="backHomeBtn" onclick="goHome()">回首頁</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="homeView">
+      <div class="card">
+        <h2>請選擇使用模式</h2>
+        <p class="muted">管理員可以管理隊員、排行榜與紀錄；關主可以查詢隊員並加減分。</p>
+
+        <div class="grid">
+          <div class="card mode-card" onclick="showAdminLogin()">
+            <div class="icon">🛠️</div>
+            <h2>管理員模式</h2>
+            <p class="muted">需要輸入 PIN 碼</p>
+          </div>
+
+          <div class="card mode-card" onclick="showJudgeLogin()">
+            <div class="icon">🎯</div>
+            <h2>關主模式</h2>
+            <p class="muted">進入前需要輸入關主名字</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="adminLoginView" class="hidden">
+      <div class="card">
+        <h2>管理員登入</h2>
+        <label for="adminPinInput">請輸入 PIN 碼</label>
+        <input id="adminPinInput" type="password" inputmode="numeric" />
+        <div class="actions">
+          <button onclick="loginAdmin()">進入管理員模式</button>
+          <button class="secondary" onclick="goHome()">取消</button>
+        </div>
+        <div id="adminLoginMsg"></div>
+      </div>
+    </section>
+
+    <section id="judgeLoginView" class="hidden">
+      <div class="card">
+        <h2>關主登入</h2>
+        <label for="judgeNameInput">請輸入關主名字</label>
+        <input id="judgeNameInput" type="text" placeholder="例如：第一關關主、王小明" />
+        <div class="actions">
+          <button onclick="loginJudge()">進入關主模式</button>
+          <button class="secondary" onclick="goHome()">取消</button>
+        </div>
+        <div id="judgeLoginMsg"></div>
+      </div>
+    </section>
+
+    <section id="adminView" class="hidden">
+      <div class="tabs">
+        <button id="tabPersonal" onclick="showAdminTab('personal')">個人排行榜</button>
+        <button id="tabGroup" onclick="showAdminTab('group')">小組排行榜</button>
+        <button id="tabLogs" onclick="showAdminTab('logs')">加減分紀錄</button>
+        <button id="tabMembers" onclick="showAdminTab('members')">隊員管理</button>
+      </div>
+
+      <div id="adminPersonalTab" class="card hidden">
+        <h2>個人積分排行榜</h2>
+        <div id="personalRanking"></div>
+      </div>
+
+      <div id="adminGroupTab" class="card hidden">
+        <h2>小組總分排行榜</h2>
+        <div id="groupRanking"></div>
+      </div>
+
+      <div id="adminLogsTab" class="hidden">
+        <div class="card">
+          <div class="top-actions" style="justify-content: space-between; margin-bottom: 10px;">
+            <div>
+              <h2>查詢隊員加減分紀錄</h2>
+              <p class="muted">請先點擊一位隊員，再查看該隊員的加減分紀錄。</p>
+            </div>
+            <button class="danger" onclick="clearLogs()">清除所有紀錄</button>
+          </div>
+
+          <label for="logPlayerSearchInput">搜尋隊員</label>
+          <input id="logPlayerSearchInput" type="text" placeholder="輸入編號、名字或組別" oninput="renderLogPlayerList()" />
+
+          <div id="logPlayerList"></div>
+        </div>
+
+        <div id="selectedPlayerLogsCard" class="card hidden">
+          <div class="top-actions" style="justify-content: space-between; margin-bottom: 10px;">
+            <div>
+              <h2 id="selectedPlayerLogsTitle">加減分紀錄</h2>
+              <p id="selectedPlayerLogsInfo" class="muted"></p>
+            </div>
+            <button class="secondary" onclick="clearSelectedLogPlayer()">重新選擇隊員</button>
+          </div>
+
+          <div id="selectedPlayerLogs"></div>
+        </div>
+      </div>
+
+      <div id="adminMembersTab" class="hidden">
+        <div class="card">
+          <h2 id="memberFormTitle">新增隊員</h2>
+
+          <div class="grid-3">
+            <div>
+              <label for="memberNumber">編號</label>
+              <input id="memberNumber" type="number" min="1" placeholder="流水號，例如 1" />
+            </div>
+
+            <div>
+              <label for="memberName">名字</label>
+              <input id="memberName" type="text" placeholder="隊員名字" />
+            </div>
+
+            <div>
+              <label for="memberGroup">組別</label>
+              <input id="memberGroup" type="text" placeholder="例如：1、2、A組" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button onclick="saveMember()">儲存隊員</button>
+            <button class="secondary" onclick="resetMemberForm()">清空表單</button>
+            <button class="warning" onclick="autoFillNumber()">自動填入下一個流水號</button>
+          </div>
+
+          <div id="memberFormMsg"></div>
+        </div>
+
+        <div class="card">
+          <h2>隊員列表與分數調整</h2>
+          <p class="muted">可編輯隊員資料、刪除隊員、直接調整分數或將分數歸零。</p>
+
+          <div class="grid">
+            <div>
+              <label for="adminSearchInput">搜尋隊員</label>
+              <input id="adminSearchInput" type="text" placeholder="輸入編號、名字或組別" oninput="renderMembers()" />
+            </div>
+
+            <div>
+              <label for="sortSelect">排序方式</label>
+              <select id="sortSelect" onchange="renderMembers()">
+                <option value="number">依編號排序</option>
+                <option value="score">依分數排序</option>
+                <option value="group">依組別排序</option>
+                <option value="name">依名字排序</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="membersList" style="margin-top: 14px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="judgeView" class="hidden">
+      <div class="card">
+        <h2>關主加減分</h2>
+        <p class="muted">目前關主：<strong id="judgeNameDisplay"></strong></p>
+
+        <label for="judgeSearchInput">輸入隊員名字或編號</label>
+        <input id="judgeSearchInput" type="text" placeholder="例如：1 或 王小明" />
+
+        <div class="actions">
+          <button onclick="judgeSearchMember()">查詢隊員</button>
+          <button class="secondary" onclick="clearJudgeSearch()">清空查詢</button>
+        </div>
+
+        <div id="judgeSearchMsg"></div>
+
+        <div id="judgeMemberResult" class="result-box hidden">
+          <h3>查詢結果</h3>
+          <div class="grid">
+            <div>
+              <p>編號：<strong id="foundNumber"></strong></p>
+              <p>名字：<strong id="foundName"></strong></p>
+              <p>組別：<strong id="foundGroup"></strong></p>
+            </div>
+
+            <div>
+              <p>目前個人積分</p>
+              <div id="foundScore" class="big-score">0</div>
+            </div>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid var(--line); margin: 14px 0;">
+
+          <div class="grid">
+            <div>
+              <label for="scoreChangeInput">加減分數</label>
+              <input id="scoreChangeInput" type="number" placeholder="加分輸入正數，扣分輸入負數，例如 10 或 -5" />
+            </div>
+
+            <div>
+              <label for="scoreReasonInput">備註</label>
+              <input id="scoreReasonInput" type="text" placeholder="例如：第一關完成、違規扣分，可空白" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="success" onclick="applyJudgeScore()">確認加減分</button>
+          </div>
+
+          <div id="judgeScoreMsg"></div>
+        </div>
+      </div>
+    
+
+      <div class="card">
+        <div class="top-actions" style="justify-content: space-between; margin-bottom: 10px;">
+          <div>
+            <h2>我的加減分紀錄</h2>
+            <p class="muted">只顯示目前這位關主登入後，自己執行過的加減分動作。</p>
+          </div>
+          <button class="secondary" onclick="renderJudgeOwnLogs()">重新整理紀錄</button>
+        </div>
+        <div id="judgeOwnLogs"></div>
+      </div></section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      push,
+      update,
+      remove,
+      runTransaction,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDAs_hLvY1jXlp8NuLFm84eeDPBPsjMjo",
+      authDomain: "score-system-fbfad.firebaseapp.com",
+      projectId: "score-system-fbfad",
+      storageBucket: "score-system-fbfad.firebasestorage.app",
+      messagingSenderId: "955329471551",
+      appId: "1:955329471551:web:8d665179d2bafb252a848a",
+      measurementId: "G-M10DGX30ZN"
+    };
+
+    const app = initializeApp(firebaseConfig);
+
+    // 如果你的 Realtime Database 不是 us-central1，通常需要填 databaseURL。
+    // 建立 Realtime Database 後，在 Firebase Console 的 Realtime Database 頁面可以看到資料庫網址。
+    // 例："https://score-system-fbfad-default-rtdb.asia-southeast1.firebasedatabase.app"
+    const REALTIME_DATABASE_URL = "https://score-system-fbfad-default-rtdb.firebaseio.com";
+    const db = REALTIME_DATABASE_URL ? getDatabase(app, REALTIME_DATABASE_URL) : getDatabase(app);
+
+    const ADMIN_PIN = "1234";
+    const DB_ROOT = "scoreSystem";
+    const playersRef = ref(db, `${DB_ROOT}/players`);
+    const logsRef = ref(db, `${DB_ROOT}/logs`);
+
+    let currentJudgeName = "";
+    let editingMemberId = null;
+    let selectedMemberIdForJudge = null;
+    let selectedLogPlayerId = null;
+    let playersLoaded = false;
+    let logsLoaded = false;
+
+    let data = {
+      players: [],
+      logs: []
+    };
+
+    function showError(where, error) {
+      console.error(error);
+      const message = error?.message || String(error);
+      alert(`${where} 失敗：${message}`);
+    }
+
+    function normalizePlayers(snapshotValue) {
+      if (!snapshotValue) return [];
+      return Object.entries(snapshotValue).map(([id, value]) => ({
+        id,
+        number: Number(value.number || 0),
+        name: value.name || "",
+        group: value.group || "",
+        score: Number(value.score || 0),
+        createdAt: value.createdAt || 0,
+        updatedAt: value.updatedAt || 0
+      })).sort((a, b) => Number(a.number) - Number(b.number));
+    }
+
+    function normalizeLogs(snapshotValue) {
+      if (!snapshotValue) return [];
+      return Object.entries(snapshotValue).map(([id, value]) => ({
+        id,
+        ...value,
+        change: Number(value.change || 0),
+        beforeScore: Number(value.beforeScore || 0),
+        afterScore: Number(value.afterScore || 0),
+        createdAt: value.createdAt || 0
+      })).sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
+    }
+
+    function startRealtimeSync() {
+      onValue(playersRef, snapshot => {
+        data.players = normalizePlayers(snapshot.val());
+        playersLoaded = true;
+        refreshCurrentView();
+      }, error => showError("讀取隊員資料", error));
+
+      onValue(logsRef, snapshot => {
+        data.logs = normalizeLogs(snapshot.val());
+        logsLoaded = true;
+        refreshCurrentView();
+      }, error => showError("讀取加減分紀錄", error));
+    }
+
+    function refreshCurrentView() {
+      if (!playersLoaded || !logsLoaded) return;
+
+      if (!document.getElementById("adminPersonalTab").classList.contains("hidden")) renderPersonalRanking();
+      if (!document.getElementById("adminGroupTab").classList.contains("hidden")) renderGroupRanking();
+      if (!document.getElementById("adminLogsTab").classList.contains("hidden")) {
+        renderLogPlayerList();
+        if (selectedLogPlayerId) renderSelectedPlayerLogs();
+      }
+      if (!document.getElementById("adminMembersTab").classList.contains("hidden")) renderMembers();
+
+      if (!document.getElementById("judgeView").classList.contains("hidden")) {
+        if (selectedMemberIdForJudge) {
+          const player = data.players.find(p => p.id === selectedMemberIdForJudge);
+          if (player) {
+            document.getElementById("foundScore").textContent = player.score || 0;
+            document.getElementById("foundNumber").textContent = player.number;
+            document.getElementById("foundName").textContent = player.name;
+            document.getElementById("foundGroup").textContent = player.group;
+          }
+        }
+        renderJudgeOwnLogs();
+      }
+    }
+
+    function nowText() {
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mi = String(d.getMinutes()).padStart(2, "0");
+      const ss = String(d.getSeconds()).padStart(2, "0");
+      return `${yyyy}/${mm}/${dd} ${hh}:${mi}:${ss}`;
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function hideAllViews() {
+      document.getElementById("homeView").classList.add("hidden");
+      document.getElementById("adminLoginView").classList.add("hidden");
+      document.getElementById("judgeLoginView").classList.add("hidden");
+      document.getElementById("adminView").classList.add("hidden");
+      document.getElementById("judgeView").classList.add("hidden");
+    }
+
+    function setModeLabel(text) {
+      const label = document.getElementById("currentMode");
+      const backBtn = document.getElementById("backHomeBtn");
+
+      if (text) {
+        label.textContent = text;
+        label.classList.remove("hidden");
+        backBtn.classList.remove("hidden");
+      } else {
+        label.textContent = "";
+        label.classList.add("hidden");
+        backBtn.classList.add("hidden");
+      }
+    }
+
+    function goHome() {
+      hideAllViews();
+      document.getElementById("homeView").classList.remove("hidden");
+      setModeLabel("");
+      currentJudgeName = "";
+      selectedMemberIdForJudge = null;
+      selectedLogPlayerId = null;
+      editingMemberId = null;
+
+      document.getElementById("adminPinInput").value = "";
+      document.getElementById("judgeNameInput").value = "";
+      document.getElementById("adminLoginMsg").innerHTML = "";
+      document.getElementById("judgeLoginMsg").innerHTML = "";
+    }
+
+    function showAdminLogin() {
+      hideAllViews();
+      document.getElementById("adminLoginView").classList.remove("hidden");
+      setModeLabel("管理員登入");
+      setTimeout(() => document.getElementById("adminPinInput").focus(), 50);
+    }
+
+    function showJudgeLogin() {
+      hideAllViews();
+      document.getElementById("judgeLoginView").classList.remove("hidden");
+      setModeLabel("關主登入");
+      setTimeout(() => document.getElementById("judgeNameInput").focus(), 50);
+    }
+
+    function loginAdmin() {
+      const pin = document.getElementById("adminPinInput").value.trim();
+      const msg = document.getElementById("adminLoginMsg");
+
+      if (pin !== ADMIN_PIN) {
+        msg.innerHTML = `<div class="danger-note">PIN 碼錯誤，請重新輸入。</div>`;
+        return;
+      }
+
+      hideAllViews();
+      document.getElementById("adminView").classList.remove("hidden");
+      setModeLabel("管理員模式");
+      showAdminTab("personal");
+    }
+
+    function loginJudge() {
+      const name = document.getElementById("judgeNameInput").value.trim();
+      const msg = document.getElementById("judgeLoginMsg");
+
+      if (!name) {
+        msg.innerHTML = `<div class="danger-note">請先輸入關主名字。</div>`;
+        return;
+      }
+
+      currentJudgeName = name;
+
+      hideAllViews();
+      document.getElementById("judgeView").classList.remove("hidden");
+      setModeLabel("關主模式");
+      document.getElementById("judgeNameDisplay").textContent = currentJudgeName;
+      clearJudgeSearch();
+      renderJudgeOwnLogs();
+    }
+
+    function showAdminTab(tab) {
+      const tabs = ["personal", "group", "logs", "members"];
+
+      tabs.forEach(t => {
+        document.getElementById("admin" + capitalize(t) + "Tab").classList.add("hidden");
+        document.getElementById("tab" + capitalize(t)).classList.remove("active");
+      });
+
+      document.getElementById("admin" + capitalize(tab) + "Tab").classList.remove("hidden");
+      document.getElementById("tab" + capitalize(tab)).classList.add("active");
+
+      if (tab === "personal") renderPersonalRanking();
+      if (tab === "group") renderGroupRanking();
+      if (tab === "logs") {
+        selectedLogPlayerId = null;
+        renderLogPlayerList();
+        document.getElementById("selectedPlayerLogsCard").classList.add("hidden");
+      }
+      if (tab === "members") renderMembers();
+    }
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function renderPersonalRanking() {
+      const box = document.getElementById("personalRanking");
+      const players = [...data.players].sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.number) - Number(b.number));
+
+      if (players.length === 0) {
+        box.innerHTML = `<p class="muted">目前沒有隊員資料。請到「隊員管理」新增隊員。</p>`;
+        return;
+      }
+
+      box.innerHTML = `
+        <div class="desktop-table table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>名次</th>
+                <th>編號</th>
+                <th>名字</th>
+                <th>組別</th>
+                <th>個人積分</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${players.map((p, index) => `
+                <tr>
+                  <td>${index + 1}</td>
+                  <td>${escapeHtml(p.number)}</td>
+                  <td>${escapeHtml(p.name)}</td>
+                  <td>${escapeHtml(p.group)}</td>
+                  <td class="score">${escapeHtml(p.score || 0)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mobile-list">
+          ${players.map((p, index) => `
+            <div class="person-card">
+              <div class="row">
+                <span class="pill">第 ${index + 1} 名</span>
+                <span class="score">${escapeHtml(p.score || 0)} 分</span>
+              </div>
+              <div class="name">${escapeHtml(p.name)}</div>
+              <div class="row"><span>編號</span><strong>${escapeHtml(p.number)}</strong></div>
+              <div class="row"><span>組別</span><strong>${escapeHtml(p.group)}</strong></div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderGroupRanking() {
+      const box = document.getElementById("groupRanking");
+      const groupMap = new Map();
+
+      data.players.forEach(p => {
+        const g = String(p.group || "未分組");
+        if (!groupMap.has(g)) {
+          groupMap.set(g, { group: g, total: 0, count: 0 });
+        }
+        groupMap.get(g).total += Number(p.score || 0);
+        groupMap.get(g).count += 1;
+      });
+
+      const groups = [...groupMap.values()].sort((a, b) => b.total - a.total || String(a.group).localeCompare(String(b.group), "zh-Hant"));
+
+      if (groups.length === 0) {
+        box.innerHTML = `<p class="muted">目前沒有小組資料。</p>`;
+        return;
+      }
+
+      box.innerHTML = `
+        <div class="desktop-table table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>名次</th>
+                <th>組別</th>
+                <th>人數</th>
+                <th>小組總分</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${groups.map((g, index) => `
+                <tr>
+                  <td>${index + 1}</td>
+                  <td>${escapeHtml(g.group)}</td>
+                  <td>${g.count}</td>
+                  <td class="score">${g.total}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mobile-list">
+          ${groups.map((g, index) => `
+            <div class="person-card">
+              <div class="row">
+                <span class="pill">第 ${index + 1} 名</span>
+                <span class="score">${g.total} 分</span>
+              </div>
+              <div class="name">第 ${escapeHtml(g.group)} 組</div>
+              <div class="row"><span>人數</span><strong>${g.count}</strong></div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderLogPlayerList() {
+      const box = document.getElementById("logPlayerList");
+      const keyword = document.getElementById("logPlayerSearchInput")?.value.trim().toLowerCase() || "";
+
+      let players = [...data.players].filter(p => {
+        const text = `${p.number} ${p.name} ${p.group}`.toLowerCase();
+        return text.includes(keyword);
+      });
+
+      players.sort((a, b) => Number(a.number) - Number(b.number));
+
+      if (players.length === 0) {
+        box.innerHTML = `<p class="muted">目前沒有符合條件的隊員。</p>`;
+        return;
+      }
+
+      box.innerHTML = `
+        <div class="log-player-list">
+          ${players.map(p => {
+            const count = data.logs.filter(log => log.playerId === p.id).length;
+            return `
+              <div class="log-player-card ${selectedLogPlayerId === p.id ? "active" : ""}" onclick="selectLogPlayer('${p.id}')">
+                <div class="name">${escapeHtml(p.name)}</div>
+                <div class="muted">編號：${escapeHtml(p.number)}｜組別：${escapeHtml(p.group)}</div>
+                <div class="muted">目前分數：${escapeHtml(p.score || 0)}｜紀錄數：${count}</div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function selectLogPlayer(id) {
+      selectedLogPlayerId = id;
+      renderLogPlayerList();
+      renderSelectedPlayerLogs();
+      document.getElementById("selectedPlayerLogsCard").classList.remove("hidden");
+    }
+
+    function clearSelectedLogPlayer() {
+      selectedLogPlayerId = null;
+      document.getElementById("selectedPlayerLogsCard").classList.add("hidden");
+      renderLogPlayerList();
+    }
+
+    function renderSelectedPlayerLogs() {
+      const player = data.players.find(p => p.id === selectedLogPlayerId);
+      const box = document.getElementById("selectedPlayerLogs");
+
+      if (!player) {
+        box.innerHTML = `<p class="muted">找不到隊員資料。</p>`;
+        return;
+      }
+
+      document.getElementById("selectedPlayerLogsTitle").textContent = `${player.name} 的加減分紀錄`;
+      document.getElementById("selectedPlayerLogsInfo").textContent = `編號：${player.number}｜組別：${player.group}｜目前分數：${player.score || 0}`;
+
+      const logs = data.logs
+        .filter(log => log.playerId === selectedLogPlayerId)
+        .slice()
+        .sort((a, b) => String(b.time).localeCompare(String(a.time)));
+
+      if (logs.length === 0) {
+        box.innerHTML = `<p class="muted">這位隊員目前沒有加減分紀錄。</p>`;
+        return;
+      }
+
+      box.innerHTML = `
+        <div class="desktop-table table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>時間</th>
+                <th>關主</th>
+                <th>加減分</th>
+                <th>調整前分數</th>
+                <th>調整後分數</th>
+                <th>備註</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${logs.map(log => `
+                <tr>
+                  <td>${escapeHtml(log.time)}</td>
+                  <td>${escapeHtml(log.judgeName)}</td>
+                  <td class="${Number(log.change) >= 0 ? "positive" : "negative"}">${Number(log.change) >= 0 ? "+" : ""}${escapeHtml(log.change)}</td>
+                  <td>${escapeHtml(log.beforeScore)}</td>
+                  <td class="score">${escapeHtml(log.afterScore)}</td>
+                  <td>${escapeHtml(log.reason || "")}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mobile-list">
+          ${logs.map(log => `
+            <div class="person-card">
+              <div class="row">
+                <strong>${escapeHtml(log.time)}</strong>
+                <span class="${Number(log.change) >= 0 ? "positive" : "negative"}">${Number(log.change) >= 0 ? "+" : ""}${escapeHtml(log.change)}</span>
+              </div>
+              <div class="row"><span>關主</span><strong>${escapeHtml(log.judgeName)}</strong></div>
+              <div class="row"><span>調整前</span><strong>${escapeHtml(log.beforeScore)}</strong></div>
+              <div class="row"><span>調整後</span><strong>${escapeHtml(log.afterScore)}</strong></div>
+              <div class="muted">備註：${escapeHtml(log.reason || "無")}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+
+    function renderJudgeOwnLogs() {
+      const box = document.getElementById("judgeOwnLogs");
+      if (!box) return;
+
+      if (!currentJudgeName) {
+        box.innerHTML = `<p class="muted">登入關主模式後，這裡會顯示你的加減分紀錄。</p>`;
+        return;
+      }
+
+      const logs = data.logs
+        .filter(log => String(log.judgeName || "") === currentJudgeName)
+        .slice()
+        .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+
+      if (logs.length === 0) {
+        box.innerHTML = `<p class="muted">目前還沒有你的加減分紀錄。</p>`;
+        return;
+      }
+
+      box.innerHTML = `
+        <div class="desktop-table table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>時間</th>
+                <th>隊員</th>
+                <th>組別</th>
+                <th>加減分</th>
+                <th>調整前</th>
+                <th>調整後</th>
+                <th>備註</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${logs.map(log => `
+                <tr>
+                  <td>${escapeHtml(log.time)}</td>
+                  <td>${escapeHtml(log.playerNumber)}｜${escapeHtml(log.playerName)}</td>
+                  <td>${escapeHtml(log.group)}</td>
+                  <td class="${log.change >= 0 ? "positive" : "negative"}">${log.change >= 0 ? "+" : ""}${escapeHtml(log.change)}</td>
+                  <td>${escapeHtml(log.beforeScore)}</td>
+                  <td class="score">${escapeHtml(log.afterScore)}</td>
+                  <td>${escapeHtml(log.reason || "")}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mobile-list">
+          ${logs.map(log => `
+            <div class="person-card">
+              <div class="row">
+                <strong>${escapeHtml(log.time)}</strong>
+                <span class="${log.change >= 0 ? "positive" : "negative"}">${log.change >= 0 ? "+" : ""}${escapeHtml(log.change)}</span>
+              </div>
+              <div class="name">${escapeHtml(log.playerNumber)}｜${escapeHtml(log.playerName)}</div>
+              <div class="row"><span>組別</span><strong>${escapeHtml(log.group)}</strong></div>
+              <div class="row"><span>調整前</span><strong>${escapeHtml(log.beforeScore)}</strong></div>
+              <div class="row"><span>調整後</span><strong>${escapeHtml(log.afterScore)}</strong></div>
+              <div class="muted">備註：${escapeHtml(log.reason || "無")}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    async function clearLogs() {
+      if (!confirm("確定要清除所有加減分紀錄嗎？此動作無法復原。")) return;
+
+      try {
+        await remove(logsRef);
+        selectedLogPlayerId = null;
+        document.getElementById("selectedPlayerLogsCard")?.classList.add("hidden");
+      } catch (error) {
+        showError("清除紀錄", error);
+      }
+    }
+
+    function autoFillNumber() {
+      const nums = data.players.map(p => Number(p.number)).filter(n => !isNaN(n));
+      const next = nums.length ? Math.max(...nums) + 1 : 1;
+      document.getElementById("memberNumber").value = next;
+    }
+
+    function resetMemberForm() {
+      editingMemberId = null;
+      document.getElementById("memberFormTitle").textContent = "新增隊員";
+      document.getElementById("memberNumber").value = "";
+      document.getElementById("memberName").value = "";
+      document.getElementById("memberGroup").value = "";
+      document.getElementById("memberFormMsg").innerHTML = "";
+    }
+
+    async function saveMember() {
+      const number = Number(document.getElementById("memberNumber").value);
+      const name = document.getElementById("memberName").value.trim();
+      const group = document.getElementById("memberGroup").value.trim();
+      const msg = document.getElementById("memberFormMsg");
+
+      if (!number || number < 1) {
+        msg.innerHTML = `<div class="danger-note">請輸入有效的流水號編號。</div>`;
+        return;
+      }
+
+      if (!name) {
+        msg.innerHTML = `<div class="danger-note">請輸入隊員名字。</div>`;
+        return;
+      }
+
+      if (!group) {
+        msg.innerHTML = `<div class="danger-note">請輸入組別。</div>`;
+        return;
+      }
+
+      const duplicatedNumber = data.players.some(p => Number(p.number) === number && p.id !== editingMemberId);
+      if (duplicatedNumber) {
+        msg.innerHTML = `<div class="danger-note">這個編號已經有人使用，請換一個流水號。</div>`;
+        return;
+      }
+
+      try {
+        const now = serverTimestamp();
+        if (editingMemberId) {
+          await update(ref(db, `${DB_ROOT}/players/${editingMemberId}`), {
+            number,
+            name,
+            group,
+            updatedAt: now
+          });
+          msg.innerHTML = `<div class="success-note">隊員資料已更新。</div>`;
+        } else {
+          await push(playersRef, {
+            number,
+            name,
+            group,
+            score: 0,
+            createdAt: now,
+            updatedAt: now
+          });
+          msg.innerHTML = `<div class="success-note">已新增隊員。</div>`;
+        }
+
+        resetMemberForm();
+      } catch (error) {
+        showError("儲存隊員", error);
+      }
+    }
+
+    function renderMembers() {
+      const box = document.getElementById("membersList");
+      const keyword = document.getElementById("adminSearchInput")?.value.trim().toLowerCase() || "";
+      const sortType = document.getElementById("sortSelect")?.value || "number";
+
+      let players = data.players.filter(p => {
+        const text = `${p.number} ${p.name} ${p.group}`.toLowerCase();
+        return text.includes(keyword);
+      });
+
+      players.sort((a, b) => {
+        if (sortType === "score") return Number(b.score || 0) - Number(a.score || 0) || Number(a.number) - Number(b.number);
+        if (sortType === "group") return String(a.group).localeCompare(String(b.group), "zh-Hant") || Number(a.number) - Number(b.number);
+        if (sortType === "name") return String(a.name).localeCompare(String(b.name), "zh-Hant") || Number(a.number) - Number(b.number);
+        return Number(a.number) - Number(b.number);
+      });
+
+      if (players.length === 0) {
+        box.innerHTML = `<p class="muted">找不到符合條件的隊員。</p>`;
+        return;
+      }
+
+      box.innerHTML = `
+        <div class="desktop-table table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>編號</th>
+                <th>名字</th>
+                <th>組別</th>
+                <th>目前分數</th>
+                <th>直接調整分數</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${players.map(p => `
+                <tr>
+                  <td>${escapeHtml(p.number)}</td>
+                  <td>${escapeHtml(p.name)}</td>
+                  <td>${escapeHtml(p.group)}</td>
+                  <td class="score">${escapeHtml(p.score || 0)}</td>
+                  <td style="min-width: 160px;">
+                    <input id="scoreInput_${p.id}" type="number" value="${escapeHtml(p.score || 0)}" />
+                  </td>
+                  <td>
+                    <div class="actions" style="margin-top:0;">
+                      <button onclick="updateScoreByAdmin('${p.id}')">更新分數</button>
+                      <button class="warning" onclick="resetScoreByAdmin('${p.id}')">歸零</button>
+                      <button class="secondary" onclick="editMember('${p.id}')">編輯</button>
+                      <button class="danger" onclick="deleteMember('${p.id}')">刪除</button>
+                    </div>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mobile-list">
+          ${players.map(p => `
+            <div class="person-card">
+              <div class="row">
+                <span class="name">${escapeHtml(p.name)}</span>
+                <span class="score">${escapeHtml(p.score || 0)} 分</span>
+              </div>
+              <div class="row"><span>編號</span><strong>${escapeHtml(p.number)}</strong></div>
+              <div class="row"><span>組別</span><strong>${escapeHtml(p.group)}</strong></div>
+
+              <label for="scoreInputMobile_${p.id}">直接調整分數</label>
+              <input id="scoreInputMobile_${p.id}" type="number" value="${escapeHtml(p.score || 0)}" />
+
+              <div class="actions">
+                <button onclick="updateScoreByAdmin('${p.id}', true)">更新分數</button>
+                <button class="warning" onclick="resetScoreByAdmin('${p.id}')">歸零</button>
+                <button class="secondary" onclick="editMember('${p.id}')">編輯</button>
+                <button class="danger" onclick="deleteMember('${p.id}')">刪除</button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function editMember(id) {
+      const player = data.players.find(p => p.id === id);
+      if (!player) return;
+
+      editingMemberId = id;
+      document.getElementById("memberFormTitle").textContent = "編輯隊員";
+      document.getElementById("memberNumber").value = player.number;
+      document.getElementById("memberName").value = player.name;
+      document.getElementById("memberGroup").value = player.group;
+      document.getElementById("memberFormMsg").innerHTML = `<div class="notice">正在編輯：${escapeHtml(player.name)}</div>`;
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function deleteMember(id) {
+      const player = data.players.find(p => p.id === id);
+      if (!player) return;
+
+      if (!confirm(`確定要刪除「${player.name}」嗎？他的分數也會一起刪除。`)) return;
+
+      try {
+        await remove(ref(db, `${DB_ROOT}/players/${id}`));
+        if (selectedLogPlayerId === id) {
+          selectedLogPlayerId = null;
+          document.getElementById("selectedPlayerLogsCard")?.classList.add("hidden");
+        }
+      } catch (error) {
+        showError("刪除隊員", error);
+      }
+    }
+
+    async function updateScoreByAdmin(id, mobile = false) {
+      const inputId = mobile ? `scoreInputMobile_${id}` : `scoreInput_${id}`;
+      const value = Number(document.getElementById(inputId).value);
+
+      if (isNaN(value)) {
+        alert("請輸入有效分數。");
+        return;
+      }
+
+      try {
+        await update(ref(db, `${DB_ROOT}/players/${id}`), {
+          score: value,
+          updatedAt: serverTimestamp()
+        });
+      } catch (error) {
+        showError("更新分數", error);
+      }
+    }
+
+    async function resetScoreByAdmin(id) {
+      const player = data.players.find(p => p.id === id);
+      if (!player) return;
+
+      if (!confirm(`確定要將「${player.name}」的分數歸零嗎？`)) return;
+
+      try {
+        await update(ref(db, `${DB_ROOT}/players/${id}`), {
+          score: 0,
+          updatedAt: serverTimestamp()
+        });
+      } catch (error) {
+        showError("分數歸零", error);
+      }
+    }
+
+    function clearJudgeSearch() {
+      document.getElementById("judgeSearchInput").value = "";
+      document.getElementById("judgeSearchMsg").innerHTML = "";
+      document.getElementById("judgeScoreMsg").innerHTML = "";
+      document.getElementById("scoreChangeInput").value = "";
+      document.getElementById("scoreReasonInput").value = "";
+      document.getElementById("judgeMemberResult").classList.add("hidden");
+      selectedMemberIdForJudge = null;
+    }
+
+    function judgeSearchMember() {
+      const keyword = document.getElementById("judgeSearchInput").value.trim();
+      const msg = document.getElementById("judgeSearchMsg");
+
+      document.getElementById("judgeScoreMsg").innerHTML = "";
+      selectedMemberIdForJudge = null;
+
+      if (!keyword) {
+        msg.innerHTML = `<div class="danger-note">請輸入隊員名字或編號。</div>`;
+        document.getElementById("judgeMemberResult").classList.add("hidden");
+        return;
+      }
+
+      const exactNumber = Number(keyword);
+      let matches = data.players.filter(p => {
+        const byNumber = !isNaN(exactNumber) && Number(p.number) === exactNumber;
+        const byName = String(p.name).includes(keyword);
+        return byNumber || byName;
+      });
+
+      if (matches.length === 0) {
+        msg.innerHTML = `<div class="danger-note">找不到這位隊員，請確認名字或編號是否正確。</div>`;
+        document.getElementById("judgeMemberResult").classList.add("hidden");
+        return;
+      }
+
+      if (matches.length > 1) {
+        msg.innerHTML = `
+          <div class="notice">
+            找到多位名字相近的隊員，請改用「編號」查詢：<br>
+            ${matches.map(p => `編號 ${escapeHtml(p.number)}：${escapeHtml(p.name)}（${escapeHtml(p.group)}組）`).join("<br>")}
+          </div>
+        `;
+        document.getElementById("judgeMemberResult").classList.add("hidden");
+        return;
+      }
+
+      const player = matches[0];
+      selectedMemberIdForJudge = player.id;
+
+      document.getElementById("foundNumber").textContent = player.number;
+      document.getElementById("foundName").textContent = player.name;
+      document.getElementById("foundGroup").textContent = player.group;
+      document.getElementById("foundScore").textContent = player.score || 0;
+
+      msg.innerHTML = "";
+      document.getElementById("judgeMemberResult").classList.remove("hidden");
+      document.getElementById("scoreChangeInput").focus();
+    }
+
+    async function applyJudgeScore() {
+      const msg = document.getElementById("judgeScoreMsg");
+
+      if (!selectedMemberIdForJudge) {
+        msg.innerHTML = `<div class="danger-note">請先查詢並選定隊員後，才能加減分。</div>`;
+        return;
+      }
+
+      const change = Number(document.getElementById("scoreChangeInput").value);
+      const reason = document.getElementById("scoreReasonInput").value.trim();
+
+      if (isNaN(change) || change === 0) {
+        msg.innerHTML = `<div class="danger-note">請輸入有效的加減分數，且不可為 0。</div>`;
+        return;
+      }
+
+      const playerRef = ref(db, `${DB_ROOT}/players/${selectedMemberIdForJudge}`);
+
+      try {
+        let result = null;
+        const time = nowText();
+
+        const transactionResult = await runTransaction(playerRef, current => {
+          if (current === null) return;
+
+          const beforeScore = Number(current.score || 0);
+          const afterScore = beforeScore + change;
+
+          result = {
+            player: {
+              id: selectedMemberIdForJudge,
+              number: current.number,
+              name: current.name,
+              group: current.group
+            },
+            beforeScore,
+            afterScore,
+            time
+          };
+
+          return {
+            ...current,
+            score: afterScore,
+            updatedAt: serverTimestamp()
+          };
+        });
+
+        if (!transactionResult.committed || !result) {
+          throw new Error("找不到隊員資料，請重新查詢。");
+        }
+
+        await push(logsRef, {
+          time,
+          createdAt: serverTimestamp(),
+          judgeName: currentJudgeName,
+          playerId: result.player.id,
+          playerNumber: result.player.number,
+          playerName: result.player.name,
+          group: result.player.group,
+          change,
+          beforeScore: result.beforeScore,
+          afterScore: result.afterScore,
+          reason
+        });
+
+        document.getElementById("foundScore").textContent = result.afterScore;
+        document.getElementById("scoreChangeInput").value = "";
+        document.getElementById("scoreReasonInput").value = "";
+
+        msg.innerHTML = `
+          <div class="success-note">
+            已完成加減分：${escapeHtml(result.player.name)}
+            ${change > 0 ? "加" : "扣"} ${Math.abs(change)} 分，
+            目前分數為 ${result.afterScore} 分。
+          </div>
+        `;
+        renderJudgeOwnLogs();
+      } catch (error) {
+        showError("加減分", error);
+      }
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+
+      if (!document.getElementById("adminLoginView").classList.contains("hidden")) {
+        loginAdmin();
+      } else if (!document.getElementById("judgeLoginView").classList.contains("hidden")) {
+        loginJudge();
+      } else if (!document.getElementById("judgeView").classList.contains("hidden")) {
+        const resultHidden = document.getElementById("judgeMemberResult").classList.contains("hidden");
+        if (resultHidden) judgeSearchMember();
+      }
+    });
+
+    Object.assign(window, {
+      goHome,
+      showAdminLogin,
+      showJudgeLogin,
+      loginAdmin,
+      loginJudge,
+      showAdminTab,
+      renderLogPlayerList,
+      selectLogPlayer,
+      clearSelectedLogPlayer,
+      clearLogs,
+      autoFillNumber,
+      resetMemberForm,
+      saveMember,
+      renderMembers,
+      editMember,
+      deleteMember,
+      updateScoreByAdmin,
+      resetScoreByAdmin,
+      clearJudgeSearch,
+      judgeSearchMember,
+      applyJudgeScore,
+      renderJudgeOwnLogs
+    });
+
+    startRealtimeSync();
+    goHome();
+  </script>
+
+</body>
+</html>
