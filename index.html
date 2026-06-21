@@ -1669,8 +1669,9 @@
     }
 
     function formatLogThemeStage(log) {
-      if (!log.themeName || !log.stageId) return "未指定";
-      return `${escapeHtml(log.themeName)}／${escapeHtml(getStageNumberLabelForLog(log))}`;
+      if (!log.stageId) return "未指定";
+      const themeName = log.themeName || getThemeById(log.themeId || "")?.name || "未指定主題";
+      return `${escapeHtml(themeName)}／${escapeHtml(getStageNumberLabelForLog(log))}`;
     }
 
     function hideJudgeSteps() {
@@ -2142,6 +2143,7 @@
               <tr>
                 <th>時間</th>
                 <th>關主</th>
+                <th>主題／關卡</th>
                 <th>加減分</th>
                 <th>調整前分數</th>
                 <th>調整後分數</th>
@@ -2153,6 +2155,7 @@
                 <tr>
                   <td>${escapeHtml(log.time)}</td>
                   <td>${escapeHtml(log.judgeName)}</td>
+                  <td>${formatLogThemeStage(log)}</td>
                   <td class="${Number(log.change) >= 0 ? "positive" : "negative"}">${Number(log.change) >= 0 ? "+" : ""}${escapeHtml(log.change)}</td>
                   <td>${escapeHtml(log.beforeScore)}</td>
                   <td class="score">${escapeHtml(log.afterScore)}</td>
@@ -2171,6 +2174,7 @@
                 <span class="${Number(log.change) >= 0 ? "positive" : "negative"}">${Number(log.change) >= 0 ? "+" : ""}${escapeHtml(log.change)}</span>
               </div>
               <div class="row"><span>關主</span><strong>${escapeHtml(log.judgeName)}</strong></div>
+              <div class="row"><span>主題／關卡</span><strong>${formatLogThemeStage(log)}</strong></div>
               <div class="row"><span>調整前</span><strong>${escapeHtml(log.beforeScore)}</strong></div>
               <div class="row"><span>調整後</span><strong>${escapeHtml(log.afterScore)}</strong></div>
               <div class="muted">備註：${escapeHtml(log.reason || "無")}</div>
