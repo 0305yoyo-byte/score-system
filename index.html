@@ -449,6 +449,56 @@
       font-size: 13px;
     }
 
+
+
+    .scoring-settings {
+      margin-top: 12px;
+    }
+
+    .judge-action-box {
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      background: #f8fafc;
+    }
+
+    .selected-result {
+      display: inline-flex;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-weight: 900;
+      margin-top: 8px;
+    }
+
+
+    .status-pending {
+      display: inline-flex;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #fff7ed;
+      color: #9a3412;
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .status-done {
+      display: inline-flex;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #ecfdf5;
+      color: #166534;
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .compact-input {
+      max-width: 120px;
+      display: inline-block;
+    }
+
     @media (max-width: 760px) {
       header .bar {
         align-items: flex-start;
@@ -574,6 +624,8 @@
       <div class="tabs">
         <button id="tabPersonal" onclick="showAdminTab('personal')">個人排行榜</button>
         <button id="tabGroup" onclick="showAdminTab('group')">小組排行榜</button>
+        <button id="tabGroupScores" onclick="showAdminTab('groupScores')">小組額外分數管理</button>
+        <button id="tabStageRecords" onclick="showAdminTab('stageRecords')">關卡勝負紀錄</button>
         <button id="tabLogs" onclick="showAdminTab('logs')">加減分紀錄</button>
         <button id="tabMembers" onclick="showAdminTab('members')">隊員管理</button>
         <button id="tabStages" onclick="showAdminTab('stages')">關卡管理</button>
@@ -588,6 +640,18 @@
       <div id="adminGroupTab" class="card hidden">
         <h2>小組總分排行榜</h2>
         <div id="groupRanking"></div>
+      </div>
+
+      <div id="adminGroupScoresTab" class="card hidden">
+        <h2>小組額外分數管理</h2>
+        <p class="muted">這裡管理的是「小組額外分」。小組排行榜會自動把隊員個人積分加總，再加上這裡的小組額外分。</p>
+        <div id="groupScoresAdmin"></div>
+      </div>
+
+      <div id="adminStageRecordsTab" class="card hidden">
+        <h2>關卡勝負紀錄</h2>
+        <p class="muted">這裡會顯示關主送出的「組別闖關成功／失敗」與「組別對戰勝負」。對戰紀錄會直接顯示勝方與敗方；尚未由管理員套用分數或標記完成者會顯示為「待處理」。</p>
+        <div id="stageRecordsAdmin"></div>
       </div>
 
       <div id="adminLogsTab" class="hidden">
@@ -689,7 +753,17 @@
               <label for="themeNameInput">主題名稱</label>
               <input id="themeNameInput" type="text" />
             </div>
+            <div>
+              <label for="themeScoringTypeInput">計分模式</label>
+              <select id="themeScoringTypeInput" onchange="renderThemeScoringSettings()">
+                <option value="individual_points">個人積分制</option>
+                <option value="group_challenge">組別闖關成功／失敗</option>
+                <option value="group_battle">組別對戰勝負</option>
+                <option value="mixed">混合模式</option>
+              </select>
+            </div>
           </div>
+          <div id="themeScoringSettings" class="result-box scoring-settings"></div>
           <div class="actions">
             <button onclick="saveTheme()">儲存主題</button>
             <button class="secondary" onclick="resetThemeForm()">清空</button>
@@ -712,6 +786,13 @@
             <div>
               <label for="stageNameInput">關卡名稱</label>
               <input id="stageNameInput" type="text" />
+            </div>
+            <div id="stageTypeField" class="hidden">
+              <label for="stageTypeInput">此關玩法</label>
+              <select id="stageTypeInput">
+                <option value="group_challenge">組別闖關成功／失敗</option>
+                <option value="group_battle">組別對戰勝負</option>
+              </select>
             </div>
           </div>
           <div class="actions">
@@ -821,51 +902,7 @@
           <button class="secondary" onclick="backToJudgeStageSelection()">回上一頁</button>
         </div>
 
-        <label for="judgeSearchInput">輸入隊員名字或編號</label>
-        <input id="judgeSearchInput" type="text" />
-
-        <div class="actions">
-          <button onclick="judgeSearchMember()">查詢隊員</button>
-          <button class="secondary" onclick="clearJudgeSearch()">清空查詢</button>
-        </div>
-
-        <div id="judgeSearchMsg"></div>
-
-        <div id="judgeMemberResult" class="result-box hidden">
-          <h3>查詢結果</h3>
-          <div class="grid">
-            <div>
-              <p>編號：<strong id="foundNumber"></strong></p>
-              <p>名字：<strong id="foundName"></strong></p>
-              <p>組別：<strong id="foundGroup"></strong></p>
-            </div>
-
-            <div>
-              <p>目前個人積分</p>
-              <div id="foundScore" class="big-score">0</div>
-            </div>
-          </div>
-
-          <hr style="border: 0; border-top: 1px solid var(--line); margin: 14px 0;">
-
-          <div class="grid">
-            <div>
-              <label for="scoreChangeInput">加減分數</label>
-              <input id="scoreChangeInput" type="number" />
-            </div>
-
-            <div>
-              <label for="scoreReasonInput">備註</label>
-              <input id="scoreReasonInput" type="text" />
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="success" onclick="applyJudgeScore()">確認加減分</button>
-          </div>
-
-          <div id="judgeScoreMsg"></div>
-        </div>
+        <div id="judgeScoringForm"></div>
       </div>
 
       <div class="card">
@@ -912,14 +949,37 @@
     const REALTIME_DATABASE_URL = "https://score-system-fbfad-default-rtdb.firebaseio.com";
     const db = REALTIME_DATABASE_URL ? getDatabase(app, REALTIME_DATABASE_URL) : getDatabase(app);
 
-    const DEFAULT_ADMIN_PIN = "1234"; // 第一次使用時的預設 PIN
-    const DB_ROOT = "scoreSystem";
+    const DEFAULT_ADMIN_PIN = "7495"; // 第一次使用時的預設 PIN
+    const DB_ROOT = "scoreSystem"; // 測試版資料路徑；正式上線再改回 scoreSystem
+
+    const SCORING_TYPES = {
+      INDIVIDUAL_POINTS: "individual_points",
+      GROUP_CHALLENGE: "group_challenge",
+      GROUP_BATTLE: "group_battle",
+      MIXED: "mixed"
+    };
+
+    const SCORING_TYPE_LABELS = {
+      individual_points: "個人積分制",
+      group_challenge: "組別闖關成功／失敗",
+      group_battle: "組別對戰勝負",
+      mixed: "混合模式"
+    };
+
+    const RESULT_LABELS = {
+      success: "成功",
+      fail: "失敗",
+      groupA_win: "前者勝",
+      groupB_win: "後者勝",
+      draw: "平手"
+    };
     const playersRef = ref(db, `${DB_ROOT}/players`);
     const logsRef = ref(db, `${DB_ROOT}/logs`);
     const settingsRef = ref(db, `${DB_ROOT}/settings`);
     const themesRef = ref(db, `${DB_ROOT}/themes`);
     const stagesRef = ref(db, `${DB_ROOT}/stages`);
     const stageScoreAdjustmentsRef = ref(db, `${DB_ROOT}/stageScoreAdjustments`);
+    const groupScoresRef = ref(db, `${DB_ROOT}/groupScores`);
 
     let currentJudgeName = "";
     let adminPin = DEFAULT_ADMIN_PIN;
@@ -936,13 +996,15 @@
     let themesLoaded = false;
     let stagesLoaded = false;
     let stageScoreAdjustmentsLoaded = false;
+    let groupScoresLoaded = false;
 
     let data = {
       players: [],
       logs: [],
       themes: [],
       stages: {},
-      stageScoreAdjustments: []
+      stageScoreAdjustments: [],
+      groupScores: {}
     };
 
     function showError(where, error) {
@@ -981,6 +1043,15 @@
       return Object.entries(snapshotValue).map(([id, value]) => ({
         id,
         name: value.name || "",
+        scoringType: value.scoringType || SCORING_TYPES.INDIVIDUAL_POINTS,
+        scoringConfig: {
+          defaultPoints: Number(value.scoringConfig?.defaultPoints ?? 0),
+          successPoints: Number(value.scoringConfig?.successPoints ?? 0),
+          failPoints: Number(value.scoringConfig?.failPoints ?? 0),
+          winPoints: Number(value.scoringConfig?.winPoints ?? 0),
+          losePoints: Number(value.scoringConfig?.losePoints ?? 0),
+          drawPoints: Number(value.scoringConfig?.drawPoints ?? 0)
+        },
         createdAt: value.createdAt || 0,
         updatedAt: value.updatedAt || 0
       })).sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
@@ -996,6 +1067,7 @@
           themeId,
           name: value.name || "未命名關卡",
           order: Number(value.order || 0),
+          stageType: value.stageType || SCORING_TYPES.GROUP_CHALLENGE,
           createdAt: value.createdAt || 0,
           updatedAt: value.updatedAt || 0
         })).sort((a, b) => Number(a.order || 0) - Number(b.order || 0) || Number(a.createdAt || 0) - Number(b.createdAt || 0));
@@ -1014,6 +1086,18 @@
         afterScore: Number(value.afterScore || 0),
         createdAt: value.createdAt || 0
       })).sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
+    }
+
+    function normalizeGroupScores(snapshotValue) {
+      const result = {};
+      if (!snapshotValue) return result;
+      Object.entries(snapshotValue).forEach(([groupName, value]) => {
+        result[groupName] = {
+          score: Number(value?.score || 0),
+          updatedAt: value?.updatedAt || 0
+        };
+      });
+      return result;
     }
 
     function startRealtimeSync() {
@@ -1050,6 +1134,12 @@
         updateSelectedJudgeStageInfo();
       }, error => showError("讀取關卡分數調整資料", error));
 
+      onValue(groupScoresRef, snapshot => {
+        data.groupScores = normalizeGroupScores(snapshot.val());
+        groupScoresLoaded = true;
+        refreshCurrentView();
+      }, error => showError("讀取小組分數", error));
+
       onValue(settingsRef, snapshot => {
         const settings = snapshot.val() || {};
         adminPin = String(settings.adminPin || DEFAULT_ADMIN_PIN);
@@ -1057,10 +1147,12 @@
     }
 
     function refreshCurrentView() {
-      if (!playersLoaded || !logsLoaded || !themesLoaded || !stagesLoaded || !stageScoreAdjustmentsLoaded) return;
+      if (!playersLoaded || !logsLoaded || !themesLoaded || !stagesLoaded || !stageScoreAdjustmentsLoaded || !groupScoresLoaded) return;
 
       if (!document.getElementById("adminPersonalTab").classList.contains("hidden")) renderPersonalRanking();
       if (!document.getElementById("adminGroupTab").classList.contains("hidden")) renderGroupRanking();
+      if (!document.getElementById("adminGroupScoresTab").classList.contains("hidden")) renderGroupScoresAdmin();
+      if (!document.getElementById("adminStageRecordsTab").classList.contains("hidden")) renderStageRecordsAdmin();
       if (!document.getElementById("adminLogsTab").classList.contains("hidden")) {
         renderLogPlayerList();
         if (selectedLogPlayerId) renderSelectedPlayerLogs();
@@ -1209,7 +1301,7 @@
     }
 
     function showAdminTab(tab) {
-      const tabs = ["personal", "group", "logs", "members", "stages", "settings"];
+      const tabs = ["personal", "group", "groupScores", "stageRecords", "logs", "members", "stages", "settings"];
 
       tabs.forEach(t => {
         document.getElementById("admin" + capitalize(t) + "Tab").classList.add("hidden");
@@ -1221,6 +1313,8 @@
 
       if (tab === "personal") renderPersonalRanking();
       if (tab === "group") renderGroupRanking();
+      if (tab === "groupScores") renderGroupScoresAdmin();
+      if (tab === "stageRecords") renderStageRecordsAdmin();
       if (tab === "logs") {
         selectedLogPlayerId = null;
         renderLogPlayerList();
@@ -1239,6 +1333,43 @@
     function capitalize(str) {
       return str.charAt(0).toUpperCase() + str.slice(1);
     }
+
+    function getAllGroupNames() {
+      const set = new Set();
+      data.players.forEach(p => {
+        if (String(p.group || "").trim()) set.add(String(p.group).trim());
+      });
+      Object.keys(data.groupScores || {}).forEach(g => set.add(String(g)));
+      return [...set].sort((a, b) => String(a).localeCompare(String(b), "zh-Hant", { numeric: true }));
+    }
+
+    function getGroupMemberScore(groupName) {
+      return data.players
+        .filter(p => String(p.group || "") === String(groupName))
+        .reduce((sum, p) => sum + Number(p.score || 0), 0);
+    }
+
+    function getGroupExtraScore(groupName) {
+      return Number(data.groupScores?.[groupName]?.score || 0);
+    }
+
+    function getGroupTotalScore(groupName) {
+      return getGroupMemberScore(groupName) + getGroupExtraScore(groupName);
+    }
+
+    function getEffectiveStageType(theme, stage) {
+      if (!theme) return SCORING_TYPES.INDIVIDUAL_POINTS;
+      if (theme.scoringType === SCORING_TYPES.MIXED) {
+        return stage?.stageType || SCORING_TYPES.GROUP_CHALLENGE;
+      }
+      return theme.scoringType || SCORING_TYPES.INDIVIDUAL_POINTS;
+    }
+
+    function getStageTypeLabel(theme, stage) {
+      const type = getEffectiveStageType(theme, stage);
+      return SCORING_TYPE_LABELS[type] || "個人積分制";
+    }
+
 
     function getStagesForTheme(themeId) {
       return data.stages[themeId] || [];
@@ -1357,20 +1488,96 @@
       await saveStageScoreAdjustment(stage, stageNumber, -currentScore, "管理員將關卡分數歸零");
     }
 
+
+    function renderThemeScoringSettings() {
+      const type = document.getElementById("themeScoringTypeInput")?.value || SCORING_TYPES.INDIVIDUAL_POINTS;
+      const box = document.getElementById("themeScoringSettings");
+      if (!box) return;
+
+      if (type === SCORING_TYPES.INDIVIDUAL_POINTS) {
+        box.innerHTML = `
+          <h3>個人積分制</h3>
+          <p class="muted">關主會查詢隊員，並對個人加減分。此模式不需要在主題中另外設定預設分數。</p>
+        `;
+        return;
+      }
+
+      if (type === SCORING_TYPES.GROUP_CHALLENGE) {
+        box.innerHTML = `
+          <h3>組別闖關設定</h3>
+          <p class="muted">關主只會選擇小隊並記錄成功或失敗，不會自動增加小組分數。</p>
+        `;
+        return;
+      }
+
+      if (type === SCORING_TYPES.GROUP_BATTLE) {
+        box.innerHTML = `
+          <h3>組別對戰設定</h3>
+          <p class="muted">關主只會選擇兩個小隊並記錄勝負或平手，不會自動增加小組分數。</p>
+        `;
+        return;
+      }
+
+      if (type === SCORING_TYPES.MIXED) {
+        box.innerHTML = `
+          <h3>混合模式設定</h3>
+          <p class="muted">混合模式下，每一個關卡可以在「新增／編輯關卡」時指定為闖關或對戰。</p>
+        `;
+      }
+    }
+
+    function setInputValue(id, value) {
+      const input = document.getElementById(id);
+      if (input) input.value = value;
+    }
+
+    function getThemeScoringConfigFromForm() {
+      return {
+        defaultPoints: 0,
+        successPoints: 0,
+        failPoints: 0,
+        winPoints: 0,
+        losePoints: 0,
+        drawPoints: 0
+      };
+    }
+
+    function setThemeScoringInputs(theme) {
+      const typeInput = document.getElementById("themeScoringTypeInput");
+      if (!typeInput || !theme) return;
+      typeInput.value = theme.scoringType || SCORING_TYPES.INDIVIDUAL_POINTS;
+      renderThemeScoringSettings();
+      // 個人積分制不再需要額外填預設分數。
+    }
+
+    function updateStageTypeFieldVisibility() {
+      const field = document.getElementById("stageTypeField");
+      if (!field) return;
+      const theme = data.themes.find(t => t.id === selectedThemeId);
+      if (theme?.scoringType === SCORING_TYPES.MIXED) field.classList.remove("hidden");
+      else field.classList.add("hidden");
+    }
+
     function resetThemeForm() {
       editingThemeId = null;
       const title = document.getElementById("themeFormTitle");
       const input = document.getElementById("themeNameInput");
+      const typeInput = document.getElementById("themeScoringTypeInput");
       const msg = document.getElementById("themeFormMsg");
       if (title) title.textContent = "新增主題";
       if (input) input.value = "";
+      if (typeInput) typeInput.value = SCORING_TYPES.INDIVIDUAL_POINTS;
       if (msg) msg.innerHTML = "";
+      renderThemeScoringSettings();
     }
 
     async function saveTheme() {
       const input = document.getElementById("themeNameInput");
+      const typeInput = document.getElementById("themeScoringTypeInput");
       const msg = document.getElementById("themeFormMsg");
       const name = input.value.trim();
+      const scoringType = typeInput?.value || SCORING_TYPES.INDIVIDUAL_POINTS;
+      const scoringConfig = getThemeScoringConfigFromForm();
 
       if (!name) {
         msg.innerHTML = `<div class="danger-note">請輸入主題名稱。</div>`;
@@ -1388,12 +1595,16 @@
         if (editingThemeId) {
           await update(ref(db, `${DB_ROOT}/themes/${editingThemeId}`), {
             name,
+            scoringType,
+            scoringConfig,
             updatedAt: now
           });
           msg.innerHTML = `<div class="success-note">主題已更新。</div>`;
         } else {
           await push(themesRef, {
             name,
+            scoringType,
+            scoringConfig,
             createdAt: now,
             updatedAt: now
           });
@@ -1411,6 +1622,7 @@
       editingThemeId = id;
       document.getElementById("themeFormTitle").textContent = "編輯主題";
       document.getElementById("themeNameInput").value = theme.name;
+      setThemeScoringInputs(theme);
       document.getElementById("themeFormMsg").innerHTML = `<div class="notice">正在編輯主題：${escapeHtml(theme.name)}</div>`;
       document.getElementById("themeNameInput").focus();
     }
@@ -1460,7 +1672,7 @@
                 <div class="top-actions" style="justify-content: space-between;">
                   <div>
                     <h3>${escapeHtml(theme.name)}</h3>
-                    <p class="muted">關卡數量：${stages.length}｜目前已給出總分：${totalScore} 分</p>
+                    <p class="muted">計分模式：${escapeHtml(SCORING_TYPE_LABELS[theme.scoringType] || "個人積分制")}｜關卡數量：${stages.length}｜目前已給出總分：${totalScore} 分</p>
                   </div>
                   <div class="actions" style="margin-top:0;" onclick="event.stopPropagation()">
                     <button class="secondary" onclick="editTheme('${theme.id}')">編輯主題</button>
@@ -1477,6 +1689,7 @@
     function selectStageTheme(id) {
       selectedThemeId = id;
       resetStageForm();
+      updateStageTypeFieldVisibility();
       renderStageManage();
     }
 
@@ -1490,18 +1703,26 @@
       editingStageId = null;
       const title = document.getElementById("stageFormTitle");
       const input = document.getElementById("stageNameInput");
+      const typeInput = document.getElementById("stageTypeInput");
       const msg = document.getElementById("stageFormMsg");
       const btn = document.getElementById("saveStageBtn");
       if (title) title.textContent = "新增關卡";
       if (input) input.value = "";
+      if (typeInput) typeInput.value = SCORING_TYPES.GROUP_CHALLENGE;
       if (msg) msg.innerHTML = "";
       if (btn) btn.textContent = "新增關卡";
+      updateStageTypeFieldVisibility();
     }
 
     async function saveStage() {
       const msg = document.getElementById("stageFormMsg");
       const input = document.getElementById("stageNameInput");
+      const typeInput = document.getElementById("stageTypeInput");
       const name = input.value.trim();
+      const theme = data.themes.find(t => t.id === selectedThemeId);
+      const stageType = theme?.scoringType === SCORING_TYPES.MIXED
+        ? (typeInput?.value || SCORING_TYPES.GROUP_CHALLENGE)
+        : (theme?.scoringType || SCORING_TYPES.INDIVIDUAL_POINTS);
 
       if (!selectedThemeId) {
         msg.innerHTML = `<div class="danger-note">請先選擇主題。</div>`;
@@ -1518,6 +1739,7 @@
         if (editingStageId) {
           await update(ref(db, `${DB_ROOT}/stages/${selectedThemeId}/${editingStageId}`), {
             name,
+            stageType,
             updatedAt: now
           });
           msg.innerHTML = `<div class="success-note">關卡已更新。</div>`;
@@ -1527,6 +1749,7 @@
           await push(ref(db, `${DB_ROOT}/stages/${selectedThemeId}`), {
             name,
             order: nextOrder,
+            stageType,
             createdAt: now,
             updatedAt: now
           });
@@ -1547,9 +1770,12 @@
       try {
         const stages = getStagesForTheme(selectedThemeId);
         const nextOrder = stages.length ? Math.max(...stages.map(s => Number(s.order || 0))) + 1 : 1;
+        const theme = data.themes.find(t => t.id === selectedThemeId);
+        const stageType = theme?.scoringType === SCORING_TYPES.MIXED ? SCORING_TYPES.GROUP_CHALLENGE : (theme?.scoringType || SCORING_TYPES.INDIVIDUAL_POINTS);
         await push(ref(db, `${DB_ROOT}/stages/${selectedThemeId}`), {
           name: `第${stages.length + 1}關`,
           order: nextOrder,
+          stageType,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
@@ -1565,6 +1791,9 @@
       document.getElementById("stageFormTitle").textContent = "編輯關卡";
       document.getElementById("saveStageBtn").textContent = "更新關卡";
       document.getElementById("stageNameInput").value = stage.name;
+      updateStageTypeFieldVisibility();
+      const typeInput = document.getElementById("stageTypeInput");
+      if (typeInput) typeInput.value = stage.stageType || SCORING_TYPES.GROUP_CHALLENGE;
       document.getElementById("stageFormMsg").innerHTML = `<div class="notice">正在編輯關卡：${escapeHtml(stage.name)}</div>`;
       document.getElementById("stageNameInput").focus();
     }
@@ -1617,6 +1846,7 @@
                   <div class="stage-format">
                     <span>第${index + 1}關</span>
                     <span>${escapeHtml(stage.name)}</span>
+                    <span>玩法：${escapeHtml(getStageTypeLabel(theme, stage))}</span>
                     <span>目前關卡已給出的分數：${givenScore} 分</span>
                   </div>
                   <div class="actions" style="margin-top:0;">
@@ -1674,6 +1904,20 @@
       return `${escapeHtml(themeName)}／${escapeHtml(getStageNumberLabelForLog(log))}`;
     }
 
+
+
+    function formatLogTarget(log) {
+      if (log.recordType === SCORING_TYPES.GROUP_CHALLENGE) return `${escapeHtml(log.group)} 組`;
+      if (log.recordType === SCORING_TYPES.GROUP_BATTLE) return `${escapeHtml(log.groupA)} 組 vs ${escapeHtml(log.groupB)} 組`;
+      return `${escapeHtml(log.playerNumber || "")}｜${escapeHtml(log.playerName || "")}`;
+    }
+
+    function formatLogResult(log) {
+      if (log.recordType === SCORING_TYPES.GROUP_CHALLENGE) return escapeHtml(log.resultText || RESULT_LABELS[log.result] || log.result || "");
+      if (log.recordType === SCORING_TYPES.GROUP_BATTLE) return escapeHtml(log.resultText || RESULT_LABELS[log.result] || log.result || "");
+      const change = Number(log.change || 0);
+      return `<span class="${change >= 0 ? "positive" : "negative"}">${change >= 0 ? "+" : ""}${escapeHtml(change)}</span>`;
+    }
     function hideJudgeSteps() {
       document.getElementById("judgeThemeStep")?.classList.add("hidden");
       document.getElementById("judgeStageStep")?.classList.add("hidden");
@@ -1708,6 +1952,7 @@
       hideJudgeSteps();
       document.getElementById("judgeScoreStep")?.classList.remove("hidden");
       updateSelectedJudgeStageInfo();
+      renderJudgeScoringForm();
       setTimeout(() => document.getElementById("judgeSearchInput")?.focus(), 50);
     }
 
@@ -1778,6 +2023,7 @@
                   <div class="stage-format">
                     <span>第${index + 1}關</span>
                     <span>${escapeHtml(stage.name)}</span>
+                    <span>玩法：${escapeHtml(getStageTypeLabel(theme, stage))}</span>
                     <span>目前關卡已給出的分數：${givenScore} 分</span>
                   </div>
                   <span class="pill">選擇此關</span>
@@ -1804,7 +2050,8 @@
       }
 
       const givenScore = getStageGivenScore(stage.id);
-      info.innerHTML = `目前選擇：<strong>${escapeHtml(theme.name)}</strong>／<strong>第${stageIndex}關</strong>｜目前已給出：<strong>${givenScore} 分</strong>`;
+      const typeLabel = getStageTypeLabel(theme, stage);
+      info.innerHTML = `目前選擇：<strong>${escapeHtml(theme.name)}</strong>／<strong>第${stageIndex}關</strong>｜玩法：<strong>${escapeHtml(typeLabel)}</strong>｜目前已給出：<strong>${givenScore} 分</strong>`;
     }
 
     function renderJudgeThemeSelect() {
@@ -1991,18 +2238,13 @@
 
     function renderGroupRanking() {
       const box = document.getElementById("groupRanking");
-      const groupMap = new Map();
-
-      data.players.forEach(p => {
-        const g = String(p.group || "未分組");
-        if (!groupMap.has(g)) {
-          groupMap.set(g, { group: g, total: 0, count: 0 });
-        }
-        groupMap.get(g).total += Number(p.score || 0);
-        groupMap.get(g).count += 1;
-      });
-
-      const groups = [...groupMap.values()].sort((a, b) => b.total - a.total || String(a.group).localeCompare(String(b.group), "zh-Hant"));
+      const groups = getAllGroupNames().map(group => {
+        const count = data.players.filter(p => String(p.group || "") === String(group)).length;
+        const memberScore = getGroupMemberScore(group);
+        const extraScore = getGroupExtraScore(group);
+        const total = memberScore + extraScore;
+        return { group, count, memberScore, extraScore, total };
+      }).sort((a, b) => b.total - a.total || String(a.group).localeCompare(String(b.group), "zh-Hant", { numeric: true }));
 
       if (groups.length === 0) {
         box.innerHTML = `<p class="muted">目前沒有小組資料。</p>`;
@@ -2010,6 +2252,7 @@
       }
 
       box.innerHTML = `
+        <div class="notice">小組總分 = 該組所有隊員個人積分加總 + 小組額外分數。</div>
         <div class="desktop-table table-wrap">
           <table>
             <thead>
@@ -2017,6 +2260,8 @@
                 <th>名次</th>
                 <th>組別</th>
                 <th>人數</th>
+                <th>個人積分加總</th>
+                <th>小組額外分</th>
                 <th>小組總分</th>
               </tr>
             </thead>
@@ -2026,26 +2271,351 @@
                   <td>${index + 1}</td>
                   <td>${escapeHtml(g.group)}</td>
                   <td>${g.count}</td>
+                  <td class="score">${g.memberScore}</td>
+                  <td class="score">${g.extraScore}</td>
                   <td class="score">${g.total}</td>
                 </tr>
               `).join("")}
             </tbody>
           </table>
         </div>
-
         <div class="mobile-list">
           ${groups.map((g, index) => `
             <div class="person-card">
-              <div class="row">
-                <span class="pill">第 ${index + 1} 名</span>
-                <span class="score">${g.total} 分</span>
-              </div>
+              <div class="row"><span class="pill">第 ${index + 1} 名</span><span class="score">${g.total} 分</span></div>
               <div class="name">第 ${escapeHtml(g.group)} 組</div>
               <div class="row"><span>人數</span><strong>${g.count}</strong></div>
+              <div class="row"><span>個人積分加總</span><strong>${g.memberScore}</strong></div>
+              <div class="row"><span>小組額外分</span><strong>${g.extraScore}</strong></div>
             </div>
           `).join("")}
         </div>
       `;
+    }
+
+    function renderGroupScoresAdmin() {
+      const box = document.getElementById("groupScoresAdmin");
+      if (!box) return;
+      const groups = getAllGroupNames();
+      if (groups.length === 0) {
+        box.innerHTML = `<p class="muted">目前沒有小組資料。請先在隊員管理新增隊員並設定組別。</p>`;
+        return;
+      }
+      box.innerHTML = `
+        <div class="notice">這裡修改的是「小組額外分」，不是小組總分。小組總分會自動加上隊員個人積分。</div>
+        <div class="desktop-table table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>組別</th>
+                <th>人數</th>
+                <th>個人積分加總</th>
+                <th>小組額外分</th>
+                <th>目前小組總分</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${groups.map(group => {
+                const count = data.players.filter(p => String(p.group || "") === String(group)).length;
+                const memberScore = getGroupMemberScore(group);
+                const extraScore = getGroupExtraScore(group);
+                const totalScore = memberScore + extraScore;
+                return `
+                  <tr>
+                    <td>${escapeHtml(group)}</td>
+                    <td>${count}</td>
+                    <td class="score">${memberScore}</td>
+                    <td><input id="groupScoreInput_${escapeHtml(group)}" type="number" value="${extraScore}" /></td>
+                    <td class="score">${totalScore}</td>
+                    <td><button onclick="updateGroupScore('${escapeHtml(group)}')">更新小組額外分</button></td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div class="mobile-list">
+          ${groups.map(group => {
+            const count = data.players.filter(p => String(p.group || "") === String(group)).length;
+            const memberScore = getGroupMemberScore(group);
+            const extraScore = getGroupExtraScore(group);
+            const totalScore = memberScore + extraScore;
+            return `
+              <div class="person-card">
+                <div class="name">第 ${escapeHtml(group)} 組</div>
+                <div class="row"><span>人數</span><strong>${count}</strong></div>
+                <div class="row"><span>個人積分加總</span><strong>${memberScore}</strong></div>
+                <div class="row"><span>目前小組總分</span><strong>${totalScore}</strong></div>
+                <label for="groupScoreInputMobile_${escapeHtml(group)}">小組額外分</label>
+                <input id="groupScoreInputMobile_${escapeHtml(group)}" type="number" value="${extraScore}" />
+                <div class="actions"><button onclick="updateGroupScore('${escapeHtml(group)}', true)">更新小組額外分</button></div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    async function updateGroupScore(groupName, mobile = false) {
+      const id = mobile ? `groupScoreInputMobile_${groupName}` : `groupScoreInput_${groupName}`;
+      const input = document.getElementById(id);
+      const score = Number(input?.value);
+      if (isNaN(score)) {
+        alert("請輸入有效的小組額外分數。");
+        return;
+      }
+      try {
+        await update(ref(db, `${DB_ROOT}/groupScores/${groupName}`), {
+          score,
+          updatedAt: serverTimestamp()
+        });
+        alert(`第 ${groupName} 組小組額外分已更新為 ${score} 分。`);
+      } catch (error) {
+        showError("更新小組額外分", error);
+      }
+    }
+
+
+    function getStageResultLogs() {
+      return [...data.logs]
+        .filter(log => log.recordType === SCORING_TYPES.GROUP_CHALLENGE || log.recordType === SCORING_TYPES.GROUP_BATTLE)
+        .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+    }
+
+    function getStageRecordStatus(log) {
+      return log.scoreStatus === "handled" || log.processedAt ? "handled" : "pending";
+    }
+
+    function formatGroupName(group) {
+      const value = String(group || "?").trim();
+      return `第 ${value} 組`;
+    }
+
+    function getStageRecordWinnerText(log) {
+      if (log.recordType === SCORING_TYPES.GROUP_CHALLENGE) {
+        if (log.result === "success") return formatGroupName(log.group);
+        if (log.result === "fail") return "—";
+        return "";
+      }
+
+      if (log.recordType === SCORING_TYPES.GROUP_BATTLE) {
+        if (log.result === "groupA_win") return formatGroupName(log.groupA);
+        if (log.result === "groupB_win") return formatGroupName(log.groupB);
+        if (log.result === "draw") return "平手";
+      }
+
+      return "";
+    }
+
+    function getStageRecordLoserText(log) {
+      if (log.recordType === SCORING_TYPES.GROUP_CHALLENGE) {
+        if (log.result === "success") return "—";
+        if (log.result === "fail") return formatGroupName(log.group);
+        return "";
+      }
+
+      if (log.recordType === SCORING_TYPES.GROUP_BATTLE) {
+        if (log.result === "groupA_win") return formatGroupName(log.groupB);
+        if (log.result === "groupB_win") return formatGroupName(log.groupA);
+        if (log.result === "draw") return "平手";
+      }
+
+      return "";
+    }
+
+    function formatScoreApplications(applications) {
+      if (!applications) return "未套用分數";
+      return Object.entries(applications)
+        .map(([group, score]) => `${escapeHtml(group)} 組：${Number(score) >= 0 ? "+" : ""}${escapeHtml(score)} 分`)
+        .join("、") || "未套用分數";
+    }
+
+    function renderStageRecordsAdmin() {
+      const box = document.getElementById("stageRecordsAdmin");
+      if (!box) return;
+      const records = getStageResultLogs();
+
+      if (records.length === 0) {
+        box.innerHTML = `<p class="muted">目前還沒有任何闖關成功／失敗或對戰勝負紀錄。</p>`;
+        return;
+      }
+
+      const pendingCount = records.filter(log => getStageRecordStatus(log) === "pending").length;
+      box.innerHTML = `
+        <div class="notice">待處理紀錄：${pendingCount} 筆。管理員可以在這裡套用小組額外分；不需要給分的紀錄也可以標記為已處理。</div>
+        <div class="desktop-table table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>狀態</th><th>時間</th><th>主題／關卡</th><th>類型</th><th>勝方</th><th>敗方</th><th>備註</th><th>給分／處理</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${records.map(log => renderStageRecordRow(log)).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div class="mobile-list">
+          ${records.map(log => renderStageRecordCard(log)).join("")}
+        </div>
+      `;
+    }
+
+    function renderStageRecordRow(log) {
+      const status = getStageRecordStatus(log);
+      const typeLabel = SCORING_TYPE_LABELS[log.recordType] || log.recordType || "";
+      const statusHtml = status === "pending"
+        ? `<span class="status-pending">待處理</span>`
+        : `<span class="status-done">已處理</span>`;
+      const handledInfo = status === "pending" ? renderStageRecordControls(log, false) : `<span class="muted">${formatScoreApplications(log.scoreApplications)}</span>`;
+      return `
+        <tr>
+          <td>${statusHtml}</td>
+          <td>${escapeHtml(log.time || "")}</td>
+          <td>${formatLogThemeStage(log)}</td>
+          <td>${escapeHtml(typeLabel)}</td>
+          <td><strong>${escapeHtml(getStageRecordWinnerText(log))}</strong></td>
+          <td><strong>${escapeHtml(getStageRecordLoserText(log))}</strong></td>
+          <td>${escapeHtml(log.reason || "")}</td>
+          <td>${handledInfo}</td>
+        </tr>
+      `;
+    }
+
+    function renderStageRecordCard(log) {
+      const status = getStageRecordStatus(log);
+      const typeLabel = SCORING_TYPE_LABELS[log.recordType] || log.recordType || "";
+      const statusHtml = status === "pending"
+        ? `<span class="status-pending">待處理</span>`
+        : `<span class="status-done">已處理</span>`;
+      const handledInfo = status === "pending" ? renderStageRecordControls(log, true) : `<div class="muted">${formatScoreApplications(log.scoreApplications)}</div>`;
+      return `
+        <div class="person-card">
+          <div class="row"><strong>${formatLogThemeStage(log)}</strong>${statusHtml}</div>
+          <div class="row"><span>時間</span><strong>${escapeHtml(log.time || "")}</strong></div>
+          <div class="row"><span>類型</span><strong>${escapeHtml(typeLabel)}</strong></div>
+          <div class="row"><span>勝方</span><strong>${escapeHtml(getStageRecordWinnerText(log))}</strong></div>
+          <div class="row"><span>敗方</span><strong>${escapeHtml(getStageRecordLoserText(log))}</strong></div>
+          <div class="muted">備註：${escapeHtml(log.reason || "無")}</div>
+          <div style="margin-top:10px;">${handledInfo}</div>
+        </div>
+      `;
+    }
+
+    function renderStageRecordControls(log, mobile = false) {
+      const suffix = mobile ? "Mobile" : "";
+      if (log.recordType === SCORING_TYPES.GROUP_CHALLENGE) {
+        return `
+          <div class="actions" style="margin-top:0;">
+            <input class="compact-input" id="recordScore${suffix}_${log.id}_${escapeHtml(log.group || "")}" type="number" placeholder="給分" />
+            <button onclick="applyChallengeRecordScore('${log.id}', ${mobile})">套用分數</button>
+            <button class="secondary" onclick="markStageRecordHandled('${log.id}')">只標記已處理</button>
+          </div>
+        `;
+      }
+      if (log.recordType === SCORING_TYPES.GROUP_BATTLE) {
+        const firstInput = log.result === "groupB_win"
+          ? { key: "B", group: log.groupB }
+          : { key: "A", group: log.groupA };
+        const secondInput = log.result === "groupB_win"
+          ? { key: "A", group: log.groupA }
+          : { key: "B", group: log.groupB };
+
+        return `
+          <div class="actions" style="margin-top:0;">
+            <input class="compact-input" id="recordScore${suffix}_${log.id}_${firstInput.key}" type="number" placeholder="${escapeHtml(formatGroupName(firstInput.group))}分" />
+            <input class="compact-input" id="recordScore${suffix}_${log.id}_${secondInput.key}" type="number" placeholder="${escapeHtml(formatGroupName(secondInput.group))}分" />
+            <button onclick="applyBattleRecordScore('${log.id}', ${mobile})">套用分數</button>
+            <button class="secondary" onclick="markStageRecordHandled('${log.id}')">只標記已處理</button>
+          </div>
+        `;
+      }
+      return "";
+    }
+
+    async function addGroupScoreDelta(groupName, delta) {
+      if (!groupName || isNaN(delta)) return;
+      const targetRef = ref(db, `${DB_ROOT}/groupScores/${groupName}`);
+      await runTransaction(targetRef, current => {
+        const currentScore = Number(current?.score || 0);
+        return {
+          ...(current || {}),
+          score: currentScore + Number(delta),
+          updatedAt: serverTimestamp()
+        };
+      });
+    }
+
+    async function applyChallengeRecordScore(logId, mobile = false) {
+      const log = data.logs.find(item => item.id === logId);
+      if (!log) return;
+      const suffix = mobile ? "Mobile" : "";
+      const input = document.getElementById(`recordScore${suffix}_${logId}_${log.group || ""}`);
+      const score = Number(input?.value);
+      if (isNaN(score)) {
+        alert("請輸入要套用的小組額外分。可以輸入 0。");
+        return;
+      }
+      try {
+        await addGroupScoreDelta(log.group, score);
+        await update(ref(db, `${DB_ROOT}/logs/${logId}`), {
+          scoreStatus: "handled",
+          processedAt: serverTimestamp(),
+          processedBy: "管理員",
+          scoreApplications: { [log.group]: score }
+        });
+        renderStageRecordsAdmin();
+        renderGroupScoresAdmin();
+        renderGroupRanking();
+      } catch (error) {
+        showError("套用闖關紀錄分數", error);
+      }
+    }
+
+    async function applyBattleRecordScore(logId, mobile = false) {
+      const log = data.logs.find(item => item.id === logId);
+      if (!log) return;
+      const suffix = mobile ? "Mobile" : "";
+      const scoreA = Number(document.getElementById(`recordScore${suffix}_${logId}_A`)?.value);
+      const scoreB = Number(document.getElementById(`recordScore${suffix}_${logId}_B`)?.value);
+      if (isNaN(scoreA) || isNaN(scoreB)) {
+        alert("請輸入兩個小組要套用的小組額外分。可以輸入 0。");
+        return;
+      }
+      try {
+        await Promise.all([
+          addGroupScoreDelta(log.groupA, scoreA),
+          addGroupScoreDelta(log.groupB, scoreB)
+        ]);
+        await update(ref(db, `${DB_ROOT}/logs/${logId}`), {
+          scoreStatus: "handled",
+          processedAt: serverTimestamp(),
+          processedBy: "管理員",
+          scoreApplications: { [log.groupA]: scoreA, [log.groupB]: scoreB }
+        });
+        renderStageRecordsAdmin();
+        renderGroupScoresAdmin();
+        renderGroupRanking();
+      } catch (error) {
+        showError("套用對戰紀錄分數", error);
+      }
+    }
+
+    async function markStageRecordHandled(logId) {
+      const log = data.logs.find(item => item.id === logId);
+      if (!log) return;
+      try {
+        await update(ref(db, `${DB_ROOT}/logs/${logId}`), {
+          scoreStatus: "handled",
+          processedAt: serverTimestamp(),
+          processedBy: "管理員",
+          scoreApplications: log.scoreApplications || null
+        });
+        renderStageRecordsAdmin();
+      } catch (error) {
+        showError("標記紀錄已處理", error);
+      }
     }
 
     function renderLogPlayerList() {
@@ -2190,7 +2760,7 @@
       if (!box) return;
 
       if (!currentJudgeName) {
-        box.innerHTML = `<p class="muted">登入關主模式後，這裡會顯示你的加減分紀錄。</p>`;
+        box.innerHTML = `<p class="muted">登入關主模式後，這裡會顯示你的紀錄。</p>`;
         return;
       }
 
@@ -2200,59 +2770,17 @@
         .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
       if (logs.length === 0) {
-        box.innerHTML = `<p class="muted">目前還沒有你的加減分紀錄</p>`;
+        box.innerHTML = `<p class="muted">目前還沒有你的紀錄</p>`;
         return;
       }
 
       box.innerHTML = `
-        <div class="desktop-table table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>時間</th>
-                <th>隊員</th>
-                <th>組別</th>
-                <th>主題／關卡</th>
-                <th>加減分</th>
-                <th>調整前</th>
-                <th>調整後</th>
-                <th>備註</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${logs.map(log => `
-                <tr>
-                  <td>${escapeHtml(log.time)}</td>
-                  <td>${escapeHtml(log.playerNumber)}｜${escapeHtml(log.playerName)}</td>
-                  <td>${escapeHtml(log.group)}</td>
-                  <td>${formatLogThemeStage(log)}</td>
-                  <td class="${log.change >= 0 ? "positive" : "negative"}">${log.change >= 0 ? "+" : ""}${escapeHtml(log.change)}</td>
-                  <td>${escapeHtml(log.beforeScore)}</td>
-                  <td class="score">${escapeHtml(log.afterScore)}</td>
-                  <td>${escapeHtml(log.reason || "")}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-
+        <div class="desktop-table table-wrap"><table><thead><tr><th>時間</th><th>類型</th><th>主題／關卡</th><th>對象</th><th>結果／加減分</th><th>備註</th></tr></thead><tbody>
+          ${logs.map(log => `<tr><td>${escapeHtml(log.time)}</td><td>${escapeHtml(SCORING_TYPE_LABELS[log.recordType] || "個人積分制")}</td><td>${formatLogThemeStage(log)}</td><td>${formatLogTarget(log)}</td><td>${formatLogResult(log)}</td><td>${escapeHtml(log.reason || "")}</td></tr>`).join("")}
+        </tbody></table></div>
         <div class="mobile-list">
-          ${logs.map(log => `
-            <div class="person-card">
-              <div class="row">
-                <strong>${escapeHtml(log.time)}</strong>
-                <span class="${log.change >= 0 ? "positive" : "negative"}">${log.change >= 0 ? "+" : ""}${escapeHtml(log.change)}</span>
-              </div>
-              <div class="name">${escapeHtml(log.playerNumber)}｜${escapeHtml(log.playerName)}</div>
-              <div class="row"><span>組別</span><strong>${escapeHtml(log.group)}</strong></div>
-              <div class="row"><span>主題／關卡</span><strong>${formatLogThemeStage(log)}</strong></div>
-              <div class="row"><span>調整前</span><strong>${escapeHtml(log.beforeScore)}</strong></div>
-              <div class="row"><span>調整後</span><strong>${escapeHtml(log.afterScore)}</strong></div>
-              <div class="muted">備註：${escapeHtml(log.reason || "無")}</div>
-            </div>
-          `).join("")}
-        </div>
-      `;
+          ${logs.map(log => `<div class="person-card"><div class="row"><strong>${escapeHtml(log.time)}</strong><span>${escapeHtml(SCORING_TYPE_LABELS[log.recordType] || "個人積分制")}</span></div><div class="row"><span>主題／關卡</span><strong>${formatLogThemeStage(log)}</strong></div><div class="row"><span>對象</span><strong>${formatLogTarget(log)}</strong></div><div class="row"><span>結果</span><strong>${formatLogResult(log)}</strong></div><div class="muted">備註：${escapeHtml(log.reason || "無")}</div></div>`).join("")}
+        </div>`;
     }
 
     async function clearLogs() {
@@ -2509,6 +3037,161 @@
       }
     }
 
+    function renderJudgeScoringForm() {
+      const box = document.getElementById("judgeScoringForm");
+      if (!box) return;
+      const theme = getThemeById(selectedJudgeThemeId);
+      const stage = getStageById(selectedJudgeThemeId, selectedJudgeStageId);
+      const mode = getEffectiveStageType(theme, stage);
+
+      if (!theme || !stage) {
+        box.innerHTML = `<div class="danger-note">請先選擇主題與關卡。</div>`;
+        return;
+      }
+
+      if (mode === SCORING_TYPES.GROUP_CHALLENGE) {
+        renderGroupChallengeJudgeForm(box);
+        return;
+      }
+
+      if (mode === SCORING_TYPES.GROUP_BATTLE) {
+        renderGroupBattleJudgeForm(box);
+        return;
+      }
+
+      renderIndividualJudgeForm(box);
+    }
+
+    function renderIndividualJudgeForm(box) {
+      box.innerHTML = `
+        <label for="judgeSearchInput">輸入隊員名字或編號</label>
+        <input id="judgeSearchInput" type="text" />
+        <div class="actions"><button onclick="judgeSearchMember()">查詢隊員</button><button class="secondary" onclick="clearJudgeSearch()">清空查詢</button></div>
+        <div id="judgeSearchMsg"></div>
+        <div id="judgeMemberResult" class="result-box hidden">
+          <h3>查詢結果</h3>
+          <div class="grid"><div><p>編號：<strong id="foundNumber"></strong></p><p>名字：<strong id="foundName"></strong></p><p>組別：<strong id="foundGroup"></strong></p></div><div><p>目前個人積分</p><div id="foundScore" class="big-score">0</div></div></div>
+          <hr style="border: 0; border-top: 1px solid var(--line); margin: 14px 0;">
+          <div class="grid"><div><label for="scoreChangeInput">加減分數</label><input id="scoreChangeInput" type="number" /></div><div><label for="scoreReasonInput">備註</label><input id="scoreReasonInput" type="text" /></div></div>
+          <div class="actions"><button class="success" onclick="applyJudgeScore()">確認加減分</button></div>
+          <div id="judgeScoreMsg"></div>
+        </div>
+      `;
+    }
+
+    function renderGroupOptions(selected = "") {
+      const groups = getAllGroupNames();
+      if (groups.length === 0) return `<option value="">目前沒有小組</option>`;
+      return groups.map(g => `<option value="${escapeHtml(g)}" ${String(g) === String(selected) ? "selected" : ""}>${escapeHtml(g)} 組</option>`).join("");
+    }
+
+    function renderGroupChallengeJudgeForm(box) {
+      box.innerHTML = `
+        <h3>組別闖關成功／失敗</h3>
+        <p class="muted">此模式只記錄成功或失敗，不會自動增加小組分數。</p>
+        <div class="grid">
+          <div><label for="challengeGroupInput">選擇小隊</label><select id="challengeGroupInput">${renderGroupOptions()}</select></div>
+          <div><label for="challengeResultInput">結果</label><select id="challengeResultInput"><option value="success">成功</option><option value="fail">失敗</option></select></div>
+        </div>
+        <label for="challengeReasonInput">備註，可空白</label><input id="challengeReasonInput" type="text" />
+        <div class="actions"><button class="success" onclick="submitGroupChallengeLog()">確認送出</button></div>
+        <div id="groupModeMsg"></div>
+      `;
+    }
+
+    function renderGroupBattleJudgeForm(box) {
+      box.innerHTML = `
+        <h3>組別對戰勝負</h3>
+        <p class="muted">此模式只記錄勝負，不會自動增加小組分數。</p>
+        <div class="grid">
+          <div><label for="battleGroupAInput">A 隊</label><select id="battleGroupAInput">${renderGroupOptions()}</select></div>
+          <div><label for="battleGroupBInput">B 隊</label><select id="battleGroupBInput">${renderGroupOptions()}</select></div>
+        </div>
+        <label for="battleResultInput">對戰結果</label>
+        <select id="battleResultInput"><option value="groupA_win">A 隊勝</option><option value="groupB_win">B 隊勝</option><option value="draw">平手</option></select>
+        <label for="battleReasonInput">備註，可空白</label><input id="battleReasonInput" type="text" />
+        <div class="actions"><button class="success" onclick="submitGroupBattleLog()">確認送出</button></div>
+        <div id="groupModeMsg"></div>
+      `;
+    }
+
+    function getSelectedThemeStageInfoForLog() {
+      const theme = getThemeById(selectedJudgeThemeId);
+      const stages = theme ? getStagesForTheme(theme.id) : [];
+      const stage = getStageById(selectedJudgeThemeId, selectedJudgeStageId);
+      const stageNumber = stages.findIndex(s => s.id === selectedJudgeStageId) + 1;
+      return { theme, stage, stageNumber };
+    }
+
+    async function submitGroupChallengeLog() {
+      const msg = document.getElementById("groupModeMsg");
+      const group = document.getElementById("challengeGroupInput")?.value || "";
+      const result = document.getElementById("challengeResultInput")?.value || "";
+      const reason = document.getElementById("challengeReasonInput")?.value.trim() || "";
+      const { theme, stage, stageNumber } = getSelectedThemeStageInfoForLog();
+
+      if (!theme || !stage) { msg.innerHTML = `<div class="danger-note">請先選擇主題與關卡。</div>`; return; }
+      if (!group) { msg.innerHTML = `<div class="danger-note">請先選擇小隊。</div>`; return; }
+
+      const resultText = RESULT_LABELS[result] || result;
+
+      try {
+        await push(logsRef, {
+          recordType: SCORING_TYPES.GROUP_CHALLENGE,
+          time: nowText(),
+          createdAt: serverTimestamp(),
+          judgeName: currentJudgeName,
+          themeId: theme.id,
+          themeName: theme.name,
+          stageId: stage.id,
+          stageName: stage.name,
+          stageNumber,
+          group,
+          result,
+          resultText,
+          reason
+        });
+        msg.innerHTML = `<div class="success-note">已送出：第 ${escapeHtml(group)} 組 ${escapeHtml(resultText)}。</div>`;
+        document.getElementById("challengeReasonInput").value = "";
+      } catch (error) { showError("送出闖關紀錄", error); }
+    }
+
+    async function submitGroupBattleLog() {
+      const msg = document.getElementById("groupModeMsg");
+      const groupA = document.getElementById("battleGroupAInput")?.value || "";
+      const groupB = document.getElementById("battleGroupBInput")?.value || "";
+      const result = document.getElementById("battleResultInput")?.value || "";
+      const reason = document.getElementById("battleReasonInput")?.value.trim() || "";
+      const { theme, stage, stageNumber } = getSelectedThemeStageInfoForLog();
+
+      if (!theme || !stage) { msg.innerHTML = `<div class="danger-note">請先選擇主題與關卡。</div>`; return; }
+      if (!groupA || !groupB) { msg.innerHTML = `<div class="danger-note">請選擇 A 隊與 B 隊。</div>`; return; }
+      if (String(groupA) === String(groupB)) { msg.innerHTML = `<div class="danger-note">A 隊和 B 隊不能相同。</div>`; return; }
+
+      const resultText = result === "groupA_win" ? `${groupA} 組勝` : result === "groupB_win" ? `${groupB} 組勝` : "平手";
+
+      try {
+        await push(logsRef, {
+          recordType: SCORING_TYPES.GROUP_BATTLE,
+          time: nowText(),
+          createdAt: serverTimestamp(),
+          judgeName: currentJudgeName,
+          themeId: theme.id,
+          themeName: theme.name,
+          stageId: stage.id,
+          stageName: stage.name,
+          stageNumber,
+          groupA,
+          groupB,
+          result,
+          resultText,
+          reason
+        });
+        msg.innerHTML = `<div class="success-note">已送出：${escapeHtml(groupA)} 組 vs ${escapeHtml(groupB)} 組，結果：${escapeHtml(resultText)}。</div>`;
+        document.getElementById("battleReasonInput").value = "";
+      } catch (error) { showError("送出對戰紀錄", error); }
+    }
+
     function clearJudgeSearch() {
       const searchInput = document.getElementById("judgeSearchInput");
       const searchMsg = document.getElementById("judgeSearchMsg");
@@ -2685,8 +3368,10 @@
         loginJudge();
       } else if (!document.getElementById("judgeView").classList.contains("hidden")) {
         const scoreStepVisible = !document.getElementById("judgeScoreStep").classList.contains("hidden");
-        const resultHidden = document.getElementById("judgeMemberResult").classList.contains("hidden");
-        if (scoreStepVisible && resultHidden) judgeSearchMember();
+        const resultBox = document.getElementById("judgeMemberResult");
+        const resultHidden = resultBox ? resultBox.classList.contains("hidden") : false;
+        const searchInput = document.getElementById("judgeSearchInput");
+        if (scoreStepVisible && searchInput && resultHidden) judgeSearchMember();
       }
     });
 
@@ -2702,6 +3387,7 @@
       selectJudgeStage,
       backToJudgeStageSelection,
       showAdminTab,
+      renderThemeScoringSettings,
       resetPinForm,
       showSettingsMainMenu,
       showSettingsPasswordMenu,
@@ -2722,6 +3408,14 @@
       setStageTotalScore,
       adjustStageScore,
       resetStageScore,
+      updateGroupScore,
+      renderGroupScoresAdmin,
+      renderStageRecordsAdmin,
+      applyChallengeRecordScore,
+      applyBattleRecordScore,
+      markStageRecordHandled,
+      submitGroupChallengeLog,
+      submitGroupBattleLog,
       renderJudgeThemeSelect,
       renderJudgeStageSelect,
       changeAdminPin,
@@ -2745,6 +3439,7 @@
 
     startRealtimeSync();
     goHome();
+    renderThemeScoringSettings();
   </script>
 
 </body>
